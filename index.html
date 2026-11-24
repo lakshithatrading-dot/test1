@@ -1,0 +1,2958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLSC Holiday Bungalow Booking Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            slsc: {
+              navy: '#0B1F3A',
+              blue: '#163A6B',
+              royal: '#1E4E8C',
+              sky: '#3B82F6',
+              gold: '#D4AF37',
+              goldLight: '#F3E5AB',
+              slate: '#F4F6F9'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F1F5F9;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP REGIMENTAL HEADER -->
+  <header class="bg-gradient-to-r from-slsc-navy via-slsc-blue to-slsc-navy text-white shadow-lg sticky top-0 z-40 border-b-2 border-slsc-gold w-full">
+    <div class="w-full px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2">
+      <!-- Crest & Title -->
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-slsc-gold/15 border border-slsc-gold/50 flex items-center justify-center shrink-0 shadow-inner">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slsc-gold" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-slsc-gold truncate">Sri Lanka Signal Corps</span>
+            <span id="syncStatusBadge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live
+            </span>
+          </div>
+          <h1 class="text-xs sm:text-lg font-extrabold tracking-tight text-white truncate leading-tight">
+            Holiday Bungalow Booking System
+          </h1>
+        </div>
+      </div>
+
+      <!-- Mode Indicator & Admin Toggle (Right Aligned) -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <div id="modeBadge" class="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold bg-white/10 text-slate-200 border border-white/15 flex items-center gap-1">
+          <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span class="hidden xs:inline">Viewer Mode</span>
+          <span class="xs:hidden">Viewer</span>
+        </div>
+
+        <button id="adminToggleBtn" onclick="handleAdminToggle()" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-semibold bg-slsc-gold text-slsc-navy hover:bg-yellow-400 transition shadow-md flex items-center gap-1 cursor-pointer">
+          <svg id="adminLockIcon" class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span id="adminToggleText">Admin</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PRIMARY 5-TAB NAVIGATION BAR -->
+    <nav class="bg-slsc-navy/95 border-t border-white/10 w-full">
+      <div class="w-full px-3 sm:px-6 flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1 sm:gap-2 py-1.5 sm:py-2">
+          <button id="mainTabBtn_availability" onclick="switchMainTab('availability')" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer bg-slsc-gold text-slsc-navy shadow">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span>1. Availability</span>
+          </button>
+
+          <button id="mainTabBtn_schedule" onclick="switchMainTab('schedule')" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white hover:bg-white/10">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            <span>2. Schedule</span>
+            <span id="navBookingsCountBadge" class="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-white/15 text-white">0</span>
+          </button>
+
+          <button id="mainTabBtn_calendar" onclick="switchMainTab('calendar')" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white hover:bg-white/10">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>3. Calendar</span>
+          </button>
+
+          <button id="mainTabBtn_personnel" onclick="switchMainTab('personnel')" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white hover:bg-white/10">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>4. Personnel</span>
+            <span id="personnelCountBadge" class="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-white/15 text-white">14</span>
+          </button>
+
+          <button id="mainTabBtn_tariffs" onclick="switchMainTab('tariffs')" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white hover:bg-white/10">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>5. Tariffs & Info</span>
+          </button>
+        </div>
+
+        <!-- Admin Quick Action Buttons in Nav Bar -->
+        <div id="adminSubBar" class="hidden items-center gap-1.5 py-1.5 shrink-0">
+          <button onclick="openBookingModal()" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] sm:text-xs font-bold shadow flex items-center gap-1 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>New</span>
+          </button>
+          <button onclick="openSettingsModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition cursor-pointer" title="Admin Settings & Magic Link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER (RESPONSIVE EDGE-TO-EDGE) -->
+  <main class="flex-1 w-full px-2.5 sm:px-6 py-3 sm:py-6">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BUNGALOW AVAILABILITY                                        -->
+    <!-- =================================================================== -->
+    <div id="tabPanel_availability" class="space-y-4 w-full">
+      <!-- Top Control Bar: Bungalow Pill Tabs + Date Picker -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 sm:p-4 space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+          <div>
+            <h2 class="text-sm sm:text-lg font-extrabold text-slsc-navy">Bungalow Floor & Unit Availability</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">Pick one of the 6 SLSC bungalows below to inspect floors, rooms, and active guests.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+            <label for="overviewDatePicker" class="text-[11px] sm:text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slsc-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Check Date:
+            </label>
+            <input type="date" id="overviewDatePicker" onchange="handleOverviewDateChange(this.value)" class="text-xs font-semibold text-slsc-navy bg-white border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+            <button onclick="resetToToday()" class="text-xs font-bold text-slsc-blue hover:text-slsc-navy px-2 py-1 rounded-lg hover:bg-slate-200/60 transition cursor-pointer">
+              Today
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 Bungalow Pill Sub-Tabs -->
+        <div id="bungalowPillTabs" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- Focused Bungalow Detail Card -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <!-- Bungalow Banner Header -->
+        <div class="bg-slsc-navy text-white px-4 sm:px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="selectedBungalowNumber" class="px-2 py-0.5 rounded bg-slsc-gold text-slsc-navy text-[10px] sm:text-xs font-extrabold">BUNGALOW 01</span>
+              <span id="selectedBungalowLocation" class="text-[11px] sm:text-xs text-sky-200 font-medium">Diyathalawa</span>
+              <span id="selectedBungalowSummaryPill" class="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-white/15 text-white"></span>
+            </div>
+            <h3 id="selectedBungalowTitle" class="text-sm sm:text-xl font-bold mt-1">Mercury House - Diyathalawa</h3>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="switchMainTab('calendar')" class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] sm:text-xs font-semibold transition flex items-center gap-1 cursor-pointer">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slsc-gold" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Calendar
+            </button>
+            <button id="quickBookSelectedBtn" onclick="openBookingModal(state.selectedBungalowId)" class="hidden px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slsc-gold hover:bg-yellow-400 text-slsc-navy text-[11px] sm:text-sm font-bold shadow transition flex items-center gap-1 cursor-pointer">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Book
+            </button>
+          </div>
+        </div>
+
+        <!-- Two-Column Focused Layout: Left = Floors/Units Breakdown | Right = Active & Upcoming Bookings -->
+        <div class="grid grid-cols-1 lg:grid-cols-12">
+          <!-- LEFT: Floors / Sub-Units Status (7 cols) -->
+          <div class="lg:col-span-7 p-3.5 sm:p-5 border-b lg:border-b-0 lg:border-r border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Floors / Rooms / Bookable Units</h4>
+              <span id="selectedDateLabelBadge" class="text-[11px] sm:text-xs font-bold text-slsc-blue bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                Today
+              </span>
+            </div>
+            <div id="subUnitsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- RIGHT: Occupants on Selected Date + Upcoming Reservations (5 cols) -->
+          <div class="lg:col-span-5 p-3.5 sm:p-5 bg-slate-50/70 space-y-4">
+            <div>
+              <h4 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                <span>Occupants on <span id="inspectorDateText" class="text-slsc-navy">Selected Date</span></span>
+                <span id="inspectorCountBadge" class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span>
+              </h4>
+              <div id="dateInspectorList" class="space-y-2">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <div class="pt-3.5 border-t border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Upcoming Bookings Here</h4>
+                <button onclick="viewAllScheduleForCurrentBungalow()" class="text-[11px] font-bold text-slsc-blue hover:underline cursor-pointer">
+                  View All →
+                </button>
+              </div>
+              <div id="bungalowUpcomingList" class="space-y-2">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: ALL BOOKINGS SCHEDULE                                        -->
+    <!-- =================================================================== -->
+    <div id="tabPanel_schedule" class="hidden space-y-4">
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden w-full">
+        <div class="p-3.5 sm:p-5 border-b border-slate-200 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm sm:text-lg font-extrabold text-slsc-navy">All Bookings Schedule & Occupancy Records</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">Complete reservation log across all SLSC bungalows. Filter by bungalow, month, timeframe, or officer.</p>
+          </div>
+
+          <!-- Mobile-Optimized Wrap Filters -->
+          <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+            <div class="relative col-span-2 sm:col-span-1 min-w-[180px]">
+              <input type="text" id="scheduleSearchInput" oninput="renderBookingsList()" placeholder="Search officer, unit, offr no..." class="w-full pl-8 pr-3 py-1.5 sm:py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+              <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            <select id="scheduleBungalowFilter" onchange="renderBookingsList()" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+              <option value="ALL">All 6 Bungalows</option>
+            </select>
+
+            <input type="month" id="scheduleMonthFilter" onchange="renderBookingsList()" title="Filter by Month" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+
+            <select id="scheduleTimeFilter" onchange="renderBookingsList()" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+              <option value="UPCOMING">Active & Upcoming</option>
+              <option value="ALL">All Records</option>
+              <option value="PAST">Completed / Past</option>
+            </select>
+
+            <button onclick="resetScheduleFilters()" class="col-span-2 sm:col-span-1 text-xs font-semibold text-slate-500 hover:text-slsc-navy px-3 py-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer text-center">
+              Reset Filters
+            </button>
+
+            <!-- Admin Bulk Cleanup Action Button -->
+            <div id="scheduleAdminBulkActionWrap" class="hidden col-span-2 sm:col-span-auto flex items-center gap-1.5">
+              <button onclick="downloadBookingsCSV()" class="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-slsc-navy hover:bg-slsc-blue text-white text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer" title="Export Bookings to CSV">
+                <span>📥 Export CSV</span>
+              </button>
+              <button onclick="openBulkDeleteModal()" class="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-300 transition flex items-center justify-center gap-1 cursor-pointer">
+                <span>🗑️ Bulk Clean...</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <th class="py-3 px-3">Bungalow & Floor / Unit</th>
+                <th class="py-3 px-3">Booked By (Rank, Name & Offr No)</th>
+                <th class="py-3 px-3">Check-In</th>
+                <th class="py-3 px-3">Check-Out</th>
+                <th class="py-3 px-3">Status / Remarks</th>
+                <th id="actionsColHeader" class="py-3 px-3 text-right hidden">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody" class="divide-y divide-slate-100 text-xs">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div id="emptyBookingsState" class="hidden py-12 px-4 text-center">
+          <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2.5">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p class="text-xs sm:text-sm font-semibold text-slate-700">No bookings match your current filters</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Try clearing the month filter or switching to "All Records".</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: CALENDAR OVERVIEW                                            -->
+    <!-- =================================================================== -->
+    <div id="tabPanel_calendar" class="hidden space-y-4">
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <!-- Calendar Top Toolbar -->
+        <div class="bg-slsc-navy text-white px-4 sm:px-5 py-3.5 flex flex-wrap items-center justify-between gap-2.5">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slsc-gold">Monthly Availability Matrix</span>
+            <h2 class="text-sm sm:text-lg font-bold">Bungalow Calendar Overview</h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <select id="calendarBungalowSelect" onchange="handleCalendarBungalowChange(this.value)" class="flex-1 sm:flex-initial text-xs font-bold bg-white text-slsc-navy rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-slsc-gold">
+              <option value="ALL">All 6 Bungalows (Combined)</option>
+            </select>
+
+            <select id="calendarUnitFilter" onchange="renderCalendar()" class="flex-1 sm:flex-initial text-xs font-semibold bg-slsc-blue text-white border border-white/20 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-slsc-gold">
+              <option value="ALL">All Floors / Units</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12">
+          <!-- Calendar Grid (8 cols) -->
+          <div class="lg:col-span-8 p-3.5 sm:p-5 border-b lg:border-b-0 lg:border-r border-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div class="flex items-center gap-2">
+                <button onclick="changeCalendarMonth(-1)" class="p-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition cursor-pointer" title="Previous Month">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h3 id="calendarMonthTitle" class="text-sm sm:text-base font-extrabold text-slsc-navy min-w-[150px] text-center">
+                  November 2026
+                </h3>
+                <button onclick="changeCalendarMonth(1)" class="p-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition cursor-pointer" title="Next Month">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              <button onclick="resetCalendarToToday()" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 transition cursor-pointer">
+                Today
+              </button>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-600 mb-2.5 pb-2 border-b border-slate-100">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-100 border border-emerald-400"></span> Free</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-400"></span> Partial</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-400"></span> Full</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full ring-2 ring-slsc-blue"></span> Selected</span>
+            </div>
+
+            <!-- Weekday Headers -->
+            <div class="calendar-grid text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 pb-1.5">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div id="calendarDaysGrid" class="calendar-grid gap-1">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Selected Date Side Inspector (4 cols) -->
+          <div class="lg:col-span-4 p-3.5 sm:p-5 bg-slate-50/70 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between mb-2.5">
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Selected Date Details</span>
+                  <h4 id="calendarInspectorDateHeading" class="text-xs sm:text-sm font-extrabold text-slsc-navy">Today</h4>
+                </div>
+                <span id="calendarInspectorBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slsc-blue text-white">0 Booked</span>
+              </div>
+
+              <div id="calendarDayBookingsList" class="space-y-2">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <div id="calendarAdminQuickAction" class="hidden pt-3 border-t border-slate-200">
+              <button onclick="bookFromCalendarSelectedDate()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Booking on Selected Date</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: PERSONNEL DIRECTORY                                          -->
+    <!-- =================================================================== -->
+    <div id="tabPanel_personnel" class="hidden space-y-4">
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div class="bg-slsc-navy text-white px-4 sm:px-5 py-3.5 flex flex-wrap items-center justify-between gap-2.5">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slsc-gold">Sri Lanka Signal Corps Roll</span>
+            <h2 class="text-sm sm:text-lg font-bold">SLSC Officer & Personnel Directory</h2>
+          </div>
+
+          <!-- Sub-tabs inside Personnel Directory -->
+          <div class="flex flex-wrap items-center gap-1">
+            <button id="dirSubBtn_list" onclick="switchPersonnelTab('list')" class="px-3 py-1 rounded-xl text-xs font-bold bg-slsc-gold text-slsc-navy cursor-pointer">
+              Roster
+            </button>
+            <button id="dirSubBtn_single" onclick="switchPersonnelTab('single', true)" class="hidden px-3 py-1 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white cursor-pointer">
+              + Add
+            </button>
+            <button id="dirSubBtn_bulk" onclick="switchPersonnelTab('bulk')" class="hidden px-3 py-1 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white cursor-pointer">
+              Excel Paste
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3.5 sm:p-5">
+          <!-- SUB-VIEW 1: ROSTER LIST -->
+          <div id="personnelTabList" class="space-y-3.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div class="relative w-full sm:w-80">
+                <input type="text" id="directorySearchInput" oninput="renderPersonnelDirectoryTable()" placeholder="Search by Offr No, Rank, Name, Unit..." class="w-full pl-8 pr-3 py-1.5 sm:py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <div id="directoryAdminAddBtnWrap" class="hidden flex items-center gap-2">
+                <button onclick="switchPersonnelTab('single', true)" class="px-3 py-1.5 rounded-xl bg-slsc-blue hover:bg-slsc-navy text-white text-xs font-bold shadow transition cursor-pointer">
+                  + Add Officer / OR
+                </button>
+                <button onclick="switchPersonnelTab('bulk')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer">
+                  Paste Excel
+                </button>
+                <button onclick="downloadPersonnelCSV()" class="px-3 py-1.5 rounded-xl bg-slsc-navy hover:bg-slsc-blue text-white text-xs font-bold shadow transition flex items-center gap-1 cursor-pointer" title="Export Personnel Roster to CSV">
+                  <span>📥 Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 border-b border-slate-200">
+                    <th class="py-2.5 px-3">Offr No</th>
+                    <th class="py-2.5 px-3">Rank</th>
+                    <th class="py-2.5 px-3">Name</th>
+                    <th class="py-2.5 px-3">Unit</th>
+                    <th class="py-2.5 px-3">Phone</th>
+                    <th id="directoryActionHeader" class="py-2.5 px-3 text-right hidden">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="personnelDirectoryTableBody" class="divide-y divide-slate-100">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 2: ADD / EDIT SINGLE PERSON -->
+          <div id="personnelTabSingle" class="hidden max-w-xl mx-auto py-1">
+            <form onsubmit="saveSinglePersonnel(event)" class="space-y-3.5 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 text-xs">
+              <input type="hidden" id="editPersonDocId" />
+              <h3 id="singlePersonFormTitle" class="text-sm font-bold text-slsc-navy border-b border-slate-200 pb-2">Add New Officer / Personnel</h3>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Offr / Regt No (Optional)</label>
+                  <input type="text" id="personOffrNoInput" placeholder="e.g. O/65123" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Rank (Optional)</label>
+                  <input type="text" id="personRankInput" placeholder="e.g. Lt Col, Maj, Mr" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Full Name with Initials & Decorations *</label>
+                <input type="text" id="personNameInput" required placeholder="e.g. ABC Perera USP psc" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Unit (Optional)</label>
+                  <input type="text" id="personUnitInput" placeholder="e.g. 1 SLSC, 3 SLSC" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Contact Phone (Optional)</label>
+                  <input type="tel" id="personPhoneInput" placeholder="e.g. 077 123 4567" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Notes (Optional)</label>
+                <input type="text" id="personNotesInput" placeholder="Any extra details..." class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+              </div>
+
+              <div class="flex items-center justify-end gap-2 pt-1">
+                <button type="button" onclick="switchPersonnelTab('list')" class="px-3.5 py-1.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-200/70 cursor-pointer">Cancel</button>
+                <button type="submit" class="px-4 py-2 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow cursor-pointer">Save Record</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- SUB-VIEW 3: BULK EXCEL PASTE IMPORTER -->
+          <div id="personnelTabBulk" class="hidden max-w-2xl mx-auto space-y-3 text-xs">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700 space-y-1">
+              <p class="font-bold text-slsc-navy text-sm">Bulk Import from Excel / Spreadsheet</p>
+              <p>1. Copy your Excel sheet columns: <strong>OFFR NO | RANK | NAME | UNIT</strong>.</p>
+              <p>2. Paste directly into the box below and click Import.</p>
+            </div>
+
+            <textarea id="bulkPasteTextarea" rows="6" placeholder="O/65001	Lt Col	AB Silva RSP	1 SLSC
+O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-slsc-blue"></textarea>
+
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-[11px] text-slate-500">Supports tab-separated or comma-separated rows.</span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="switchPersonnelTab('list')" class="px-3.5 py-1.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">Back</button>
+                <button type="button" onclick="processBulkPersonnelImport()" class="px-4 py-2 rounded-xl bg-slsc-navy hover:bg-slsc-blue text-white font-bold shadow transition cursor-pointer">
+                  Import Rows
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: BUNGALOW TARIFFS & OFFICIAL PRICING TABLE                   -->
+    <!-- =================================================================== -->
+    <div id="tabPanel_tariffs" class="hidden space-y-4">
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div class="bg-slsc-navy text-white px-4 sm:px-5 py-3.5 flex flex-wrap items-center justify-between gap-2.5">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slsc-gold">Official Regimental Tariff Guide</span>
+            <h2 class="text-sm sm:text-lg font-bold">Holiday Bungalow Rates & Facilities</h2>
+          </div>
+          <div id="tariffAdminActionWrap" class="hidden">
+            <button onclick="openTariffEditModal()" class="px-3 py-1.5 rounded-xl bg-slsc-gold text-slsc-navy text-xs font-bold hover:bg-yellow-400 transition cursor-pointer">
+              ✏️ Edit Rates
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3.5 sm:p-5 space-y-3.5">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-slsc-navy flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <p class="font-bold">Official Booking Rates across all SLSC Holiday Bungalows.</p>
+              <p class="text-slate-600 text-[11px] mt-0.5">Rates categorized for SLSC Personnel, Non-SLSC Armed Services, and Civilian Guests.</p>
+            </div>
+            <!-- Bungalow Selector Filter for Tariff Table -->
+            <div class="flex items-center gap-2 shrink-0">
+              <label class="font-bold text-slate-700">Filter:</label>
+              <select id="tariffBungalowFilter" onchange="renderTariffTable()" class="text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slsc-navy focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+                <option value="ALL">All 6 Bungalows</option>
+                <option value="Anuradhapura">1. Anuradhapura</option>
+                <option value="Diyathalawa">2. Diyathalawa</option>
+                <option value="Minneriya">3. Minneriya</option>
+                <option value="Kandy">4. Kandy</option>
+                <option value="Menerigama">5. Menerigama</option>
+                <option value="Kilinochchi">6. Kilinochchi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-xs min-w-[850px]">
+              <thead>
+                <tr class="bg-slate-100 text-[10px] sm:text-[11px] font-bold uppercase text-slate-700 border-b border-slate-300">
+                  <th class="py-2.5 px-2.5 text-center w-10">No</th>
+                  <th class="py-2.5 px-3 w-36">Administrative Unit</th>
+                  <th class="py-2.5 px-3">Bungalow / Floor / Unit / Facility Description</th>
+                  <th class="py-2.5 px-2.5 text-right">SLSC Serving & Retired (Rs.)</th>
+                  <th class="py-2.5 px-2.5 text-right">Non-SLSC Services (Rs.)</th>
+                  <th class="py-2.5 px-2.5 text-right">Civil Guests (Rs.)</th>
+                </tr>
+              </thead>
+              <tbody id="tariffsTableBody" class="divide-y divide-slate-200">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-3.5 mt-6 w-full">
+    <div class="w-full px-3 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11px] sm:text-xs text-slate-500 text-center sm:text-left">
+      <p class="font-medium text-slate-600">Sri Lanka Signal Corps — Regimental Holiday Bungalow Management</p>
+      <p>Real-Time Cloud Synced • Mobile & Desktop Ready</p>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: ADMIN PASSCODE UNLOCK MODAL                                  -->
+  <!-- ===================================================================== -->
+  <div id="adminPasscodeModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-fadeIn">
+      <div class="bg-slsc-navy text-white px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-slsc-gold"></span>
+          <h3 class="font-bold text-base">Admin Mode Verification</h3>
+        </div>
+        <button onclick="closeModal('adminPasscodeModal')" class="text-slate-300 hover:text-white p-1 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <form onsubmit="submitAdminPasscode(event)" class="p-5 space-y-4">
+        <p class="text-xs sm:text-sm text-slate-600">
+          Enter the authorized Admin Passcode to unlock booking creation, editing, and personnel management.
+        </p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Admin Passcode</label>
+          <input type="password" id="adminPasscodeInput" required placeholder="Enter passcode..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+          <p id="passcodeErrorMsg" class="hidden text-xs text-rose-600 font-semibold mt-1.5">Incorrect passcode. Please try again.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('adminPasscodeModal')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slsc-navy hover:bg-slsc-blue text-white shadow transition cursor-pointer">Unlock Admin Mode</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: CREATE / EDIT BOOKING MODAL (WITH SMART AUTOCOMPLETE)        -->
+  <!-- ===================================================================== -->
+  <div id="bookingModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
+      <div class="bg-slsc-navy text-white px-5 py-4 flex items-center justify-between border-b border-slsc-gold/40">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-slsc-gold">SLSC Reservation</span>
+          <h3 id="bookingModalTitle" class="font-bold text-base sm:text-lg">New Bungalow Booking</h3>
+        </div>
+        <button onclick="closeModal('bookingModal')" class="text-slate-300 hover:text-white p-1 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="bookingForm" onsubmit="saveBooking(event)" class="p-5 space-y-4">
+        <input type="hidden" id="editBookingId" />
+
+        <!-- Bungalow & Sub-unit Selection -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">1. Main Bungalow *</label>
+            <select id="bookingBungalowSelect" onchange="populateBookingUnitsDropdown()" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">2. Floor / Cottage / Unit *</label>
+            <select id="bookingUnitSelect" onchange="checkBookingConflictLive()" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+            </select>
+          </div>
+        </div>
+
+        <!-- Unit Spec Info Pill -->
+        <div id="unitSpecBanner" class="bg-blue-50 border border-blue-200 rounded-xl px-3.5 py-2 text-xs text-slsc-blue flex items-center justify-between">
+          <span id="unitSpecCapacity" class="font-semibold">Capacity: -</span>
+          <span id="unitSpecAc" class="px-2 py-0.5 rounded bg-white font-bold border border-blue-200">A/C</span>
+        </div>
+
+        <!-- MIXED ROOM / AC SELECTION CHECKBOXES (Dynamic when unit has mixed rooms) -->
+        <div id="mixedRoomSelectorContainer" class="hidden bg-amber-50/80 border border-amber-300 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-900 uppercase tracking-wide">Select Rooms to Book in this Unit:</span>
+            <span id="mixedRoomAvailabilityNote" class="text-[11px] font-semibold text-amber-700">Checking availability...</span>
+          </div>
+          <div id="mixedRoomCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Check-in & Check-out Dates -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">3. Check-In Date *</label>
+            <input type="date" id="bookingCheckIn" onchange="handleCheckInChange()" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">4. Check-Out Date *</label>
+            <input type="date" id="bookingCheckOut" onchange="checkBookingConflictLive()" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+          </div>
+        </div>
+
+        <!-- Conflict Warning Banner -->
+        <div id="conflictWarningBox" class="hidden bg-rose-50 border border-rose-300 rounded-xl p-3 text-xs text-rose-800 flex items-start gap-2.5">
+          <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p class="font-bold">Double-Booking Conflict Detected!</p>
+            <p id="conflictDetailsText" class="mt-0.5">This floor/unit is already booked during the selected dates.</p>
+          </div>
+        </div>
+
+        <!-- SMART PERSONNEL AUTOCOMPLETE SEARCH -->
+        <div class="relative">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-700">5. Officer / Guest Name (Select or Type New Name) *</label>
+            <button type="button" onclick="openQuickAddPersonnelFromBooking()" class="text-[11px] font-bold text-slsc-blue hover:underline cursor-pointer">
+              + Full Form
+            </button>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="personnelSearchInput" autocomplete="off" oninput="handlePersonnelAutocomplete(this.value)" onfocus="handlePersonnelAutocomplete(this.value)" placeholder="Search existing officer OR type any new name..." class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <button type="button" id="clearSelectedPersonBtn" onclick="clearSelectedPersonnel()" class="hidden absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer" title="Clear selection">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Autocomplete Dropdown Results -->
+          <div id="personnelDropdownList" class="hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-slate-300 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-slate-100">
+          </div>
+
+          <!-- Selected Officer Confirmation Card -->
+          <div id="selectedPersonnelCard" class="hidden mt-2 bg-emerald-50/80 border border-emerald-200 rounded-xl p-3 flex items-center justify-between gap-2">
+            <div>
+              <div id="selPersonMetaRow" class="flex items-center gap-2">
+                <span id="selPersonOffrNo" class="px-2 py-0.5 rounded bg-slsc-navy text-white text-[11px] font-bold">O/62717</span>
+                <span id="selPersonUnit" class="text-xs font-semibold text-slate-600">3 SLSC</span>
+              </div>
+              <p id="selPersonFullName" class="text-xs sm:text-sm font-bold text-slate-900 mt-1">Maj Gen KMG Bandaranayake USP ndc psc</p>
+            </div>
+            <span id="selPersonBadgeText" class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">Selected ✓</span>
+          </div>
+          <input type="hidden" id="selectedPersonnelId" />
+        </div>
+
+        <!-- Contact Phone & Remarks -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Contact Number (Optional)</label>
+            <input type="tel" id="bookingContactPhone" placeholder="e.g. 071 234 5678" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Remarks / Purpose (Optional)</label>
+            <input type="text" id="bookingRemarks" placeholder="e.g. Family visit / Official" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+          </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
+          <button type="button" onclick="closeModal('bookingModal')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit" id="saveBookingSubmitBtn" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition cursor-pointer">
+            Confirm Booking
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: ADMIN SETTINGS & MAGIC LINK MODAL                            -->
+  <!-- ===================================================================== -->
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slsc-navy text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-bold text-base">Admin Access & Sharing Links</h3>
+        <button onclick="closeModal('settingsModal')" class="text-slate-300 hover:text-white p-1 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-4 text-xs sm:text-sm">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Viewer Link (Share with All Officers / Staff)</label>
+          <p class="text-xs text-slate-500 mb-1.5">Opens immediately in Read-Only mode without any login.</p>
+          <div class="flex gap-2">
+            <input type="text" id="viewerUrlInput" readonly class="flex-1 px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 text-xs font-mono text-slate-700" />
+            <button onclick="copyInputText('viewerUrlInput')" class="px-3.5 py-2 rounded-xl bg-slsc-blue text-white text-xs font-bold hover:bg-slsc-navy cursor-pointer">Copy</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Direct Admin Magic Link (Bookmark for Yourself)</label>
+          <p class="text-xs text-slate-500 mb-1.5">Automatically unlocks Admin Edit Mode without typing a password.</p>
+          <div class="flex gap-2">
+            <input type="text" id="adminMagicUrlInput" readonly class="flex-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-300 text-xs font-mono text-amber-900" />
+            <button onclick="copyInputText('adminMagicUrlInput')" class="px-3.5 py-2 rounded-xl bg-slsc-gold text-slsc-navy text-xs font-bold hover:bg-yellow-400 cursor-pointer">Copy</button>
+          </div>
+        </div>
+
+        <form onsubmit="updateAdminPasscodeSetting(event)" class="pt-3 border-t border-slate-200 space-y-2.5">
+          <label class="block text-xs font-bold text-slate-700 uppercase">3. Change Admin Passcode</label>
+          <div class="flex gap-2">
+            <input type="text" id="newPasscodeInput" placeholder="New passcode (min 4 chars)" required minlength="4" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs" />
+            <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 cursor-pointer">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 5: CUSTOM CONFIRMATION DIALOG (NO BROWSER CONFIRM/ALERT)        -->
+  <!-- ===================================================================== -->
+  <div id="confirmDialogModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-200 p-5 space-y-4">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <div>
+          <h4 id="confirmDialogTitle" class="text-sm font-bold text-slate-900">Confirm Action</h4>
+          <p id="confirmDialogMessage" class="text-xs text-slate-600 mt-1">Are you sure you want to proceed?</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeModal('confirmDialogModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">Cancel</button>
+        <button id="confirmDialogProceedBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow cursor-pointer">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: TARIFF EDIT MODAL (ADMIN) -->
+  <div id="tariffEditModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slsc-navy text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-bold text-base">Edit Tariff Rates</h3>
+        <button onclick="closeModal('tariffEditModal')" class="text-slate-300 hover:text-white p-1 cursor-pointer">✕</button>
+      </div>
+      <form onsubmit="saveTariffRates(event)" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+        <p class="text-slate-600">Modify the official nightly rates below. Changes sync live.</p>
+        <div id="tariffEditRowsContainer" class="space-y-3">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('tariffEditModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold cursor-pointer">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold cursor-pointer">Save Rates</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 7: BULK DELETE / ARCHIVE MODAL (ADMIN) -->
+  <div id="bulkDeleteModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slsc-navy text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-bold text-base">Bulk Clean / Delete Bookings</h3>
+        <button onclick="closeModal('bulkDeleteModal')" class="text-slate-300 hover:text-white p-1 cursor-pointer">✕</button>
+      </div>
+      <form onsubmit="executeBulkDelete(event)" class="p-5 space-y-4 text-xs">
+        <p class="text-slate-600">
+          Select a specific month and year to safely remove old completed records, keeping your current active audit logs untouched.
+        </p>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Target Month & Year for Cleanup</label>
+          <input type="month" id="bulkDeleteMonthInput" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-900">
+          <p class="font-bold">⚠️ Safety Notice:</p>
+          <p class="mt-0.5">Only completed bookings check-out prior to or during the selected month will be removed.</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('bulkDeleteModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold cursor-pointer">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold cursor-pointer">Delete Matching Records</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC + FIREBASE REAL-TIME FIRESTORE INTEGRATION          -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      addDoc,
+      setDoc,
+      updateDoc,
+      deleteDoc,
+      getDocs,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // -----------------------------------------------------------------------
+    // OFFICIAL TARIFF RATES DATA
+    // -----------------------------------------------------------------------
+    const INITIAL_TARIFFS = [
+      { id: 't1', no: '1', filterKey: 'Anuradhapura', unit: '4 SLSC (Anuradhapura)', item: 'Grade I Holiday Bungalow (3 x AC Rooms)', slsc: '3,000.00', other: '6,000.00', civil: '12,000.00' },
+      { id: 't2', no: '1', filterKey: 'Anuradhapura', unit: '4 SLSC (Anuradhapura)', item: 'Grade II Officer / ORs Bungalow (2 x AC, 1 x Non-AC)', slsc: '2,000.00', other: '4,000.00', civil: '8,000.00' },
+      { id: 't3', no: '1', filterKey: 'Anuradhapura', unit: '4 SLSC (Anuradhapura)', item: 'Dormitory (7 Double Beds - 14 Persons)', slsc: '2,500.00', other: '5,000.00', civil: '8,500.00' },
+
+      { id: 't4', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'Ground Floor Hall & Rooms (2 Rooms / 16 Persons)', slsc: '5,000.00', other: '10,000.00', civil: '15,000.00' },
+      { id: 't5', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'First Floor (3 Rooms / 10 Persons)', slsc: '3,000.00', other: '6,000.00', civil: '15,000.00' },
+      { id: 't6', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'Second Floor - Function Hall (Up to 50 persons)', slsc: '15,000.00', other: '30,000.00', civil: '50,000.00' },
+      { id: 't7', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'Second Floor - Function Hall (Per extra person above 50)', slsc: '250.00', other: '500.00', civil: '750.00' },
+      { id: 't8', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'Third Floor Suite (Signal Officers - Lt Col & above / Brig above)', slsc: '5,000.00', other: '10,000.00', civil: '20,000.00' },
+      { id: 't9', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'Billiard Table Facility', slsc: '500.00', other: '500.00', civil: '500.00' },
+      { id: 't10', no: '2', filterKey: 'Diyathalawa', unit: '7 SLSC (Diyathalawa)', item: 'Parabolic Hut Facility', slsc: '4,000.00', other: '8,000.00', civil: '10,000.00' },
+
+      { id: 't11', no: '3', filterKey: 'Minneriya', unit: '2(V) SLSC (Minneriya)', item: 'Miridiya Pawana (Officers Only - 3 Rooms)', slsc: '5,000.00', other: '10,000.00', civil: '25,000.00' },
+
+      { id: 't12', no: '4', filterKey: 'Kandy', unit: 'Signal School (Kandy)', item: 'Knuckles View Bungalow (2 Rooms)', slsc: '3,000.00', other: '6,000.00', civil: '8,000.00' },
+      { id: 't13', no: '4', filterKey: 'Kandy', unit: 'Signal School (Kandy)', item: 'Breezy Cottage (Lt Col & above - 1 Room)', slsc: '2,000.00', other: '4,000.00', civil: '7,500.00' },
+
+      { id: 't14', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Pool Site Rooms (2 Rooms)', slsc: '1,500.00', other: '2,500.00', civil: '3,000.00' },
+      { id: 't15', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Cabanas (3 x 4 = 12 Units)', slsc: '3,000.00', other: '5,000.00', civil: '7,500.00' },
+      { id: 't16', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Swimming Pool Area (For small groups)', slsc: '4,000.00', other: '7,000.00', civil: '15,000.00' },
+      { id: 't17', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Swimming Pool Area (For large groups above 20)', slsc: '5,000.00', other: '9,000.00', civil: '20,000.00' },
+      { id: 't18', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Swimwear Usage Fee (For Civilian Guests)', slsc: '200.00', other: '200.00', civil: '200.00' },
+      { id: 't20', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Location for functions (Below 20 pers)', slsc: '4,000.00', other: '7,000.00', civil: '15,000.00' },
+      { id: 't21', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Location for functions (More than 20 pers)', slsc: '5,000.00', other: '9,000.00', civil: '20,000.00' },
+      { id: 't22', no: '5', filterKey: 'Menerigama', unit: '5 SLSC (Menerigama)', item: 'Entire bungalow', slsc: '8,000.00', other: '14,000.00', civil: '25,000.00' },
+
+      { id: 't19', no: '6', filterKey: 'Kilinochchi', unit: '1 SLSC (Kilinochchi)', item: 'Cabana (Per Unit)', slsc: '1,500.00', other: '2,500.00', civil: '3,500.00' }
+    ];
+
+    // -----------------------------------------------------------------------
+    // 1. EXACT 6 MAIN BUNGALOWS & SUB-UNITS CONFIGURATION
+    // -----------------------------------------------------------------------
+    const BUNGALOWS = [
+      {
+        id: 'diyathalawa',
+        number: '01',
+        name: 'Mercury House - Diyathalawa',
+        location: 'Diyathalawa',
+        units: [
+          { id: 'diya_ground', name: 'Ground Floor (Dormitory)', capacity: '2 Rooms (16 Persons)', ac: 'Non A/C', allowIndividualRooms: false, rooms: [{ id: 'dorm', name: '2 Rooms (16 Persons)', type: 'Non A/C' }] },
+          { id: 'diya_first', name: 'First Floor (Complete Floor)', capacity: '03 Rooms (Whole Floor)', ac: '2 x A/C, 1 x Non A/C', allowIndividualRooms: false, rooms: [{ id: 'r1', name: 'Room 1', type: 'A/C' }, { id: 'r2', name: 'Room 2', type: 'A/C' }, { id: 'r3', name: 'Room 3', type: 'Non A/C' }] },
+          { id: 'diya_second', name: 'Second Floor - For Functions', capacity: 'Hall (50+ persons)', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'hall', name: 'Function Hall', type: 'A/C' }] },
+          { id: 'diya_suite', name: 'The Suite (3rd Floor)', capacity: '01 Luxury Suite', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'suite', name: 'Luxury Suite', type: 'A/C' }] }
+        ]
+      },
+      {
+        id: 'kandy',
+        number: '02',
+        name: 'Holiday Bungalow - Kandy',
+        location: 'Kandy',
+        units: [
+          { id: 'kandy_main', name: 'Holiday Bungalow at Kandy (Knuckles view)', capacity: '02 Rooms (Complete Bungalow)', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'r1', name: 'Room 1', type: 'A/C' }, { id: 'r2', name: 'Room 2', type: 'A/C' }] },
+          { id: 'kandy_breezy', name: 'Holiday Bungalow Breezy Cottage (Lt Col Officers above)', capacity: '01 Room', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'cottage', name: 'Breezy Cottage Room', type: 'A/C' }] }
+        ]
+      },
+      {
+        id: 'anuradhapura',
+        number: '03',
+        name: 'Holiday Bungalow - Anuradhapura',
+        location: 'Anuradhapura',
+        units: [
+          { id: 'anura_new', name: 'New Bungalow (Grade I & above Officers)', capacity: '03 Rooms (Complete Bungalow)', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'r1', name: 'Room 1', type: 'A/C' }, { id: 'r2', name: 'Room 2', type: 'A/C' }, { id: 'r3', name: 'Room 3', type: 'A/C' }] },
+          { id: 'anura_old', name: 'Old Bungalow (Grade II & below Officers / ORs)', capacity: '03 Rooms (Complete Bungalow)', ac: '2 x A/C, 1 x Non A/C', allowIndividualRooms: false, rooms: [{ id: 'r1', name: 'Room 1', type: 'A/C' }, { id: 'r2', name: 'Room 2', type: 'A/C' }, { id: 'r3', name: 'Room 3', type: 'Non A/C' }] },
+          { id: 'anura_dorm', name: 'Dormitory (Officers & ORs)', capacity: '7 Double Beds (14 Persons)', ac: 'Non A/C', allowIndividualRooms: false, rooms: [{ id: 'dorm', name: '7 Double Beds (14 Persons)', type: 'Non A/C' }] }
+        ]
+      },
+      {
+        id: 'kilinochchi',
+        number: '04',
+        name: "Officers' Holiday Bungalow - Kilinochchi",
+        location: 'Kilinochchi',
+        units: [
+          { id: 'kili_cabana', name: 'Officers Cabana', capacity: '03 Rooms (Complete Cabana)', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'r1', name: 'Room 1', type: 'A/C' }, { id: 'r2', name: 'Room 2', type: 'A/C' }, { id: 'r3', name: 'Room 3', type: 'A/C' }] }
+        ]
+      },
+      {
+        id: 'minneriya',
+        number: '05',
+        name: 'Miridiya Pawana - Minneriya',
+        location: 'Minneriya',
+        units: [
+          { id: 'minn_main', name: 'Miridiya Pawana (Officers)', capacity: '03 Rooms (Complete Bungalow)', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'r1', name: 'Room 1', type: 'A/C' }, { id: 'r2', name: 'Room 2', type: 'A/C' }, { id: 'r3', name: 'Room 3', type: 'A/C' }] }
+        ]
+      },
+      {
+        id: 'padukka',
+        number: '06',
+        name: 'Mercury Club House - Padukka',
+        location: 'Padukka',
+        units: [
+          { id: 'padu_pool_1', name: 'Pool Site Room 1', capacity: '01 Room', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'room', name: 'Pool Site Room 1', type: 'A/C' }] },
+          { id: 'padu_pool_2', name: 'Pool Site Room 2', capacity: '01 Room', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'room', name: 'Pool Site Room 2', type: 'A/C' }] },
+          { id: 'padu_cabana_1', name: 'Cabana 1', capacity: '01 Room', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'cabana', name: 'Cabana 1', type: 'A/C' }] },
+          { id: 'padu_cabana_2', name: 'Cabana 2', capacity: '01 Room', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'cabana', name: 'Cabana 2', type: 'A/C' }] },
+          { id: 'padu_cabana_3', name: 'Cabana 3', capacity: '01 Room', ac: 'A/C', allowIndividualRooms: false, rooms: [{ id: 'cabana', name: 'Cabana 3', type: 'A/C' }] },
+          { id: 'padu_functions', name: 'Location for functions', capacity: 'Function Area / Venue', ac: 'A/C / Open', allowIndividualRooms: false, rooms: [{ id: 'functions', name: 'Location for functions', type: 'A/C / Open' }] },
+          { id: 'padu_entire', name: 'Entire bungalow', capacity: 'Complete Bungalow (All Units)', ac: 'A/C', isEntireBungalow: true, allowIndividualRooms: false, rooms: [{ id: 'entire', name: 'Entire bungalow', type: 'A/C' }] }
+        ]
+      }
+    ];
+
+    // -----------------------------------------------------------------------
+    // 2. EXACT 14 PRE-LOADED OFFICERS FROM PROVIDED ROSTER
+    // -----------------------------------------------------------------------
+    const INITIAL_PERSONNEL = [
+      { id: 'O_62717', offrNo: 'O/62717', rank: 'Maj Gen', name: 'KMG Bandaranayake USP ndc psc', unit: '', phone: '', notes: '' },
+      { id: 'O_62424', offrNo: 'O/62424', rank: 'Maj Gen', name: 'AKD Adikari USP ndc', unit: '3 SLSC', phone: '', notes: '' },
+      { id: 'O_62453', offrNo: 'O/62453', rank: 'Maj Gen', name: 'BD Fernando USP Hdmc psc', unit: '4 SLSC', phone: '', notes: '' },
+      { id: 'O_62454', offrNo: 'O/62454', rank: 'Maj Gen', name: 'SJKD Jayawardena USP psc', unit: '1 SLSC', phone: '', notes: '' },
+      { id: 'O_63038', offrNo: 'O/63038', rank: 'T/Maj Gen', name: 'PWMMD Wijerathne RSP USP ndc', unit: '3 SLSC', phone: '', notes: '' },
+      { id: 'O_62609', offrNo: 'O/62609', rank: 'T/Maj Gen', name: 'YSP Sumanasinghe RSP', unit: '5 SLSC', phone: '', notes: '' },
+      { id: 'O_63243', offrNo: 'O/63243', rank: 'Brig', name: 'GGR Madhugoda USP', unit: '4 SLSC', phone: '', notes: '' },
+      { id: 'O_63458', offrNo: 'O/63458', rank: 'Brig', name: 'KVP Dhammika USP ptsc', unit: '7 SLSC', phone: '', notes: '' },
+      { id: 'O_62999', offrNo: 'O/62999', rank: 'Brig', name: 'TS Liyanagunawardana', unit: '3 SLSC', phone: '', notes: '' },
+      { id: 'O_62802', offrNo: 'O/62802', rank: 'Brig', name: 'RC Wijekoon USP psc', unit: '4 SLSC', phone: '', notes: '' },
+      { id: 'O_63172', offrNo: 'O/63172', rank: 'Brig', name: 'PPC Perera psc', unit: '1 SLSC', phone: '', notes: '' },
+      { id: 'O_62817', offrNo: 'O/62817', rank: 'Brig', name: 'MAK Jayawardena psc', unit: '7 SLSC', phone: '', notes: '' },
+      { id: 'O_64389', offrNo: 'O/64389', rank: 'Brig', name: 'MRMRLB Meegasthanna USP ptsc', unit: '3 SLSC', phone: '', notes: '' },
+      { id: 'O_63994', offrNo: 'O/63994', rank: 'Brig', name: 'PHN Chandrasekara', unit: '4 SLSC', phone: '', notes: '' }
+    ];
+
+    // -----------------------------------------------------------------------
+    // 3. APPLICATION STATE
+    // -----------------------------------------------------------------------
+    function getTodayISO() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    const todayStr = getTodayISO();
+    const state = {
+      activeMainTab: 'availability',
+      isAdmin: false,
+      adminPasscode: 'slsc2027',
+      selectedBungalowId: 'diyathalawa',
+      calendarBungalowId: 'ALL',
+      selectedDate: todayStr,
+      calendarYear: new Date().getFullYear(),
+      calendarMonth: new Date().getMonth(),
+      bookings: [],
+      personnel: [...INITIAL_PERSONNEL],
+      tariffs: [...INITIAL_TARIFFS],
+      db: null,
+      auth: null,
+      user: null,
+      appId: typeof __app_id !== 'undefined' ? __app_id : 'slsc-bungalows-app'
+    };
+
+    window.state = state;
+
+    // -----------------------------------------------------------------------
+    // 4. HELPER UTILITIES
+    // -----------------------------------------------------------------------
+    function addDaysISO(isoDate, days) {
+      const [y, m, d] = isoDate.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      dt.setDate(dt.getDate() + days);
+      return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatDisplayDate(isoDate) {
+      if (!isoDate) return '-';
+      const [y, m, d] = isoDate.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function isDateOccupiedByBooking(targetDate, booking) {
+      if (booking.checkIn === booking.checkOut) {
+        return targetDate === booking.checkIn;
+      }
+      return targetDate >= booking.checkIn && targetDate < booking.checkOut;
+    }
+
+    function doDateRangesOverlap(startA, endA, startB, endB) {
+      const effectiveEndA = startA === endA ? addDaysISO(startA, 1) : endA;
+      const effectiveEndB = startB === endB ? addDaysISO(startB, 1) : endB;
+      return startA < effectiveEndB && effectiveEndA > startB;
+    }
+
+    function getBungalowById(id) {
+      return BUNGALOWS.find(b => b.id === id) || BUNGALOWS[0];
+    }
+
+    function getUnitById(bungalowId, unitId) {
+      const b = getBungalowById(bungalowId);
+      return b.units.find(u => u.id === unitId) || b.units[0];
+    }
+
+    function doesBookingAffectUnit(bungalowId, unitId, bk) {
+      if (bk.bungalowId !== bungalowId) return false;
+      if (bk.unitId === unitId) return true;
+      const targetUnit = getUnitById(bungalowId, unitId);
+      const bookedUnit = getUnitById(bungalowId, bk.unitId);
+      if (bookedUnit?.isEntireBungalow || targetUnit?.isEntireBungalow) {
+        return true;
+      }
+      return false;
+    }
+
+    function getBookedUnitCountForDate(bungalowId, targetDate, filteredBookings = null) {
+      const b = getBungalowById(bungalowId);
+      const source = filteredBookings || state.bookings;
+      const dayBookings = source.filter(bk => bk.bungalowId === bungalowId && isDateOccupiedByBooking(targetDate, bk));
+      if (dayBookings.length === 0) return 0;
+
+      const hasEntire = dayBookings.some(bk => {
+        const u = getUnitById(bungalowId, bk.unitId);
+        return !!u?.isEntireBungalow;
+      });
+      if (hasEntire) return b.units.length;
+
+      return new Set(dayBookings.map(bk => bk.unitId)).size;
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const colors = type === 'error'
+        ? 'bg-rose-600 text-white border-rose-700'
+        : type === 'warning'
+        ? 'bg-amber-500 text-slate-900 border-amber-600'
+        : 'bg-slsc-navy text-white border-slsc-gold';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 transition-all duration-300 ${colors}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. GLOBAL ATTACHMENTS
+    // -----------------------------------------------------------------------
+    function formatPersonFullDisplay(rank, name) {
+      return [rank, name].map(s => (s || '').trim()).filter(Boolean).join(' ');
+    }
+
+    function hasValidOffrNo(offrNo) {
+      const val = (offrNo || '').trim();
+      return val !== '' && val !== '-' && val.toUpperCase() !== 'N/A';
+    }
+
+    window.selectPersonnelItem = function (person) {
+      const fullName = formatPersonFullDisplay(person.rank, person.name);
+      const validOffr = hasValidOffrNo(person.offrNo);
+
+      document.getElementById('selectedPersonnelId').value = person.id || person.docId || '';
+      document.getElementById('personnelSearchInput').value = validOffr ? `${fullName} (${person.offrNo})` : fullName;
+      document.getElementById('personnelDropdownList').classList.add('hidden');
+      document.getElementById('clearSelectedPersonBtn').classList.remove('hidden');
+
+      const metaRow = document.getElementById('selPersonMetaRow');
+      const offrEl = document.getElementById('selPersonOffrNo');
+      const unitEl = document.getElementById('selPersonUnit');
+
+      if (validOffr) {
+        offrEl.textContent = person.offrNo;
+        offrEl.classList.remove('hidden');
+      } else {
+        offrEl.classList.add('hidden');
+      }
+
+      if (person.unit) {
+        unitEl.textContent = person.unit;
+        unitEl.classList.remove('hidden');
+      } else if (!validOffr) {
+        unitEl.textContent = person.isNewGuest ? 'New Guest / Personnel (Will save to Directory)' : 'Guest / Personnel';
+        unitEl.classList.remove('hidden');
+      } else {
+        unitEl.classList.add('hidden');
+      }
+
+      metaRow.classList.remove('hidden');
+      document.getElementById('selPersonFullName').textContent = fullName;
+      document.getElementById('selPersonBadgeText').textContent = person.isNewGuest ? 'New Entry + Book ✓' : 'Selected ✓';
+      document.getElementById('selectedPersonnelCard').classList.remove('hidden');
+
+      if (person.phone && !document.getElementById('bookingContactPhone').value) {
+        document.getElementById('bookingContactPhone').value = person.phone;
+      }
+
+      const form = document.getElementById('bookingForm');
+      form.dataset.officerOffrNo = validOffr ? person.offrNo : '';
+      form.dataset.officerRank = (person.rank || '').trim();
+      form.dataset.officerName = (person.name || '').trim();
+      form.dataset.officerUnit = (person.unit || '').trim();
+      form.dataset.isNewPerson = person.isNewGuest ? 'true' : 'false';
+    };
+
+    window.selectNewTypedPersonnel = function () {
+      const typedName = (document.getElementById('personnelSearchInput').value || '').trim();
+      if (!typedName) return;
+      window.selectPersonnelItem({
+        id: '',
+        offrNo: '',
+        rank: '',
+        name: typedName,
+        unit: '',
+        isNewGuest: true
+      });
+    };
+
+    window.selectPersonnelByIndex = function (idx) {
+      const list = window._lastAutocompleteMatches || [];
+      if (list[idx]) {
+        window.selectPersonnelItem(list[idx]);
+      }
+    };
+
+    window.confirmDeletePersonnel = function (docId) {
+      if (!state.isAdmin) return;
+      const p = state.personnel.find(item => (item.docId === docId || item.id === docId));
+      if (!p) return;
+
+      document.getElementById('confirmDialogTitle').textContent = 'Delete Personnel Record?';
+      document.getElementById('confirmDialogMessage').textContent =
+        `Remove ${formatPersonFullDisplay(p.rank, p.name)} from the SLSC directory?`;
+
+      const proceedBtn = document.getElementById('confirmDialogProceedBtn');
+      proceedBtn.onclick = async () => {
+        window.closeModal('confirmDialogModal');
+        try {
+          if (state.db && state.user) {
+            const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
+            await deleteDoc(doc(personnelCol, docId));
+          } else {
+            state.personnel = state.personnel.filter(item => (item.docId !== docId && item.id !== docId));
+            document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+            renderPersonnelDirectoryTable();
+          }
+          showToast('Personnel record deleted.');
+        } catch (err) {
+          console.error('Delete personnel error:', err);
+          showToast('Could not delete personnel record.', 'error');
+        }
+      };
+
+      window.openModal('confirmDialogModal');
+    };
+
+    window.switchMainTab = function (tabName) {
+      state.activeMainTab = tabName;
+      const allTabs = ['availability', 'schedule', 'calendar', 'personnel', 'tariffs'];
+
+      allTabs.forEach(t => {
+        const panel = document.getElementById(`tabPanel_${t}`);
+        const btn = document.getElementById(`mainTabBtn_${t}`);
+        if (!panel || !btn) return;
+
+        if (t === tabName) {
+          panel.classList.remove('hidden');
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition flex items-center gap-2 cursor-pointer bg-slsc-gold text-slsc-navy shadow';
+        } else {
+          panel.classList.add('hidden');
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white hover:bg-white/10';
+        }
+      });
+
+      if (tabName === 'availability') {
+        renderBungalowPillTabs();
+        renderSelectedBungalowDetails();
+      } else if (tabName === 'schedule') {
+        renderBookingsList();
+      } else if (tabName === 'calendar') {
+        renderCalendar();
+      } else if (tabName === 'personnel') {
+        renderPersonnelDirectoryTable();
+      } else if (tabName === 'tariffs') {
+        renderTariffTable();
+      }
+    };
+
+    window.renderTariffTable = function () {
+      const tbody = document.getElementById('tariffsTableBody');
+      if (!tbody) return;
+
+      const filterVal = document.getElementById('tariffBungalowFilter')?.value || 'ALL';
+      const filtered = state.tariffs.filter(t => filterVal === 'ALL' || t.filterKey === filterVal);
+
+      tbody.innerHTML = filtered.map(t => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 text-center font-bold text-slate-700">${t.no}</td>
+          <td class="py-2.5 px-3 font-semibold text-slsc-navy">${t.unit}</td>
+          <td class="py-2.5 px-4 font-medium text-slate-800">${t.item}</td>
+          <td class="py-2.5 px-3 text-right font-bold text-emerald-700">Rs. ${t.slsc}</td>
+          <td class="py-2.5 px-3 text-right font-semibold text-blue-800">Rs. ${t.other}</td>
+          <td class="py-2.5 px-3 text-right font-semibold text-slate-700">Rs. ${t.civil}</td>
+        </tr>
+      `).join('');
+    };
+
+    window.openTariffEditModal = function () {
+      if (!state.isAdmin) return;
+      const container = document.getElementById('tariffEditRowsContainer');
+      container.innerHTML = state.tariffs.map((t, idx) => `
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+          <div class="font-bold text-slsc-navy">${t.unit} — ${t.item}</div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600">SLSC Rate (Rs.)</label>
+              <input type="text" id="t_slsc_${idx}" value="${t.slsc}" class="w-full px-2 py-1.5 rounded border bg-white font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600">Other Services (Rs.)</label>
+              <input type="text" id="t_other_${idx}" value="${t.other}" class="w-full px-2 py-1.5 rounded border bg-white font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600">Civilian Rate (Rs.)</label>
+              <input type="text" id="t_civil_${idx}" value="${t.civil}" class="w-full px-2 py-1.5 rounded border bg-white font-semibold" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+      window.openModal('tariffEditModal');
+    };
+
+    window.saveTariffRates = async function (e) {
+      e.preventDefault();
+      if (!state.isAdmin) return;
+
+      state.tariffs.forEach((t, idx) => {
+        t.slsc = document.getElementById(`t_slsc_${idx}`).value.trim();
+        t.other = document.getElementById(`t_other_${idx}`).value.trim();
+        t.civil = document.getElementById(`t_civil_${idx}`).value.trim();
+      });
+
+      try {
+        if (state.db && state.user) {
+          const tariffCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'tariffs');
+          await setDoc(doc(tariffCol, 'officialTariffs'), { items: state.tariffs });
+        }
+        window.closeModal('tariffEditModal');
+        renderTariffTable();
+        showToast('Tariff rates updated successfully!');
+      } catch (err) {
+        console.error('Save tariffs error:', err);
+        showToast('Updated locally.', 'warning');
+        window.closeModal('tariffEditModal');
+        renderTariffTable();
+      }
+    };
+
+    window.viewAllScheduleForCurrentBungalow = function () {
+      document.getElementById('scheduleBungalowFilter').value = state.selectedBungalowId;
+      document.getElementById('scheduleTimeFilter').value = 'ALL';
+      window.switchMainTab('schedule');
+    };
+
+    window.handleAdminToggle = function () {
+      if (state.isAdmin) {
+        setAdminMode(false, true);
+      } else {
+        document.getElementById('adminPasscodeInput').value = '';
+        document.getElementById('passcodeErrorMsg').classList.add('hidden');
+        window.openModal('adminPasscodeModal');
+        setTimeout(() => document.getElementById('adminPasscodeInput').focus(), 100);
+      }
+    };
+
+    window.submitAdminPasscode = function (e) {
+      e.preventDefault();
+      const entered = document.getElementById('adminPasscodeInput').value.trim();
+      if (entered === state.adminPasscode) {
+        window.closeModal('adminPasscodeModal');
+        setAdminMode(true, true);
+      } else {
+        document.getElementById('passcodeErrorMsg').classList.remove('hidden');
+      }
+    };
+
+    window.selectBungalow = function (bungalowId) {
+      state.selectedBungalowId = bungalowId;
+      renderBungalowPillTabs();
+      renderSelectedBungalowDetails();
+    };
+
+    window.handleCalendarBungalowChange = function (val) {
+      state.calendarBungalowId = val;
+      const unitFilter = document.getElementById('calendarUnitFilter');
+      if (val === 'ALL') {
+        unitFilter.innerHTML = `<option value="ALL">All Units Across 6 Bungalows</option>`;
+        unitFilter.disabled = true;
+        unitFilter.classList.add('opacity-60');
+      } else {
+        const b = getBungalowById(val);
+        unitFilter.disabled = false;
+        unitFilter.classList.remove('opacity-60');
+        unitFilter.innerHTML = `<option value="ALL">All Floors / Units (${b.units.length})</option>` +
+          b.units.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+      }
+      renderCalendar();
+    };
+
+    window.changeCalendarMonth = function (delta) {
+      let m = state.calendarMonth + delta;
+      let y = state.calendarYear;
+      if (m < 0) {
+        m = 11;
+        y--;
+      } else if (m > 11) {
+        m = 0;
+        y++;
+      }
+      state.calendarMonth = m;
+      state.calendarYear = y;
+      renderCalendar();
+    };
+
+    window.resetCalendarToToday = function () {
+      state.selectedDate = todayStr;
+      const [y, m] = todayStr.split('-').map(Number);
+      state.calendarYear = y;
+      state.calendarMonth = m - 1;
+      document.getElementById('overviewDatePicker').value = todayStr;
+      renderCalendar();
+    };
+
+    window.bookFromCalendarSelectedDate = function () {
+      const preB = state.calendarBungalowId !== 'ALL' ? state.calendarBungalowId : state.selectedBungalowId;
+      const unitFilterVal = document.getElementById('calendarUnitFilter')?.value;
+      const preU = (state.calendarBungalowId !== 'ALL' && unitFilterVal && unitFilterVal !== 'ALL') ? unitFilterVal : null;
+      window.openBookingModal(preB, preU, state.selectedDate);
+    };
+
+    window.selectCalendarDate = function (isoDate) {
+      state.selectedDate = isoDate;
+      document.getElementById('overviewDatePicker').value = isoDate;
+      renderBungalowPillTabs();
+      renderSelectedBungalowDetails();
+      renderCalendar();
+    };
+
+    window.handleOverviewDateChange = function (isoDate) {
+      if (!isoDate) return;
+      state.selectedDate = isoDate;
+      const [y, m] = isoDate.split('-').map(Number);
+      state.calendarYear = y;
+      state.calendarMonth = m - 1;
+      renderAllViews();
+    };
+
+    window.resetToToday = function () {
+      window.handleOverviewDateChange(todayStr);
+    };
+
+    window.resetScheduleFilters = function () {
+      document.getElementById('scheduleSearchInput').value = '';
+      document.getElementById('scheduleBungalowFilter').value = 'ALL';
+      document.getElementById('scheduleMonthFilter').value = '';
+      document.getElementById('scheduleTimeFilter').value = 'UPCOMING';
+      renderBookingsList();
+    };
+
+    window.renderBookingsList = function () {
+      const navBadge = document.getElementById('navBookingsCountBadge');
+      if (navBadge) navBadge.textContent = state.bookings.length;
+
+      const search = (document.getElementById('scheduleSearchInput').value || '').toLowerCase().trim();
+      const bungalowFilter = document.getElementById('scheduleBungalowFilter').value;
+      const monthFilter = document.getElementById('scheduleMonthFilter').value;
+      const timeFilter = document.getElementById('scheduleTimeFilter').value;
+
+      const filtered = state.bookings.filter(bk => {
+        if (bungalowFilter !== 'ALL' && bk.bungalowId !== bungalowFilter) return false;
+
+        if (monthFilter) {
+          const inMonth = (bk.checkIn && bk.checkIn.startsWith(monthFilter)) || (bk.checkOut && bk.checkOut.startsWith(monthFilter));
+          if (!inMonth) return false;
+        }
+
+        if (timeFilter === 'UPCOMING' && bk.checkOut < todayStr) return false;
+        if (timeFilter === 'PAST' && bk.checkOut >= todayStr) return false;
+
+        if (search) {
+          const b = getBungalowById(bk.bungalowId);
+          const u = getUnitById(bk.bungalowId, bk.unitId);
+          const haystack = `${bk.officerName} ${bk.officerRank} ${bk.officerOffrNo} ${bk.officerUnit} ${b.name} ${u.name} ${bk.remarks || ''}`.toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+        return true;
+      });
+
+      const tbody = document.getElementById('bookingsTableBody');
+      const emptyState = document.getElementById('emptyBookingsState');
+      if (!tbody) return;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      tbody.innerHTML = filtered.map(bk => {
+        const b = getBungalowById(bk.bungalowId);
+        const u = getUnitById(bk.bungalowId, bk.unitId);
+        const isCurrent = isDateOccupiedByBooking(todayStr, bk);
+        const isPast = bk.checkOut < todayStr;
+
+        let statusPill = `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800">Upcoming</span>`;
+        if (isCurrent) {
+          statusPill = `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Occupied Now</span>`;
+        } else if (isPast) {
+          statusPill = `<span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600">Completed</span>`;
+        }
+
+        const roomNamesStr = (u.allowIndividualRooms && bk.selectedRooms && u.rooms)
+          ? u.rooms.filter(r => bk.selectedRooms.includes(r.id)).map(r => r.name).join(', ')
+          : (u.isEntireBungalow ? 'Entire Bungalow' : 'Complete Floor / Unit');
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4">
+              <div class="font-bold text-slsc-navy">${b.name}</div>
+              <div class="text-xs text-slsc-blue font-semibold mt-0.5">${u.name} <span class="font-normal text-slate-500">(${roomNamesStr})</span></div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900">${formatPersonFullDisplay(bk.officerRank, bk.officerName)}</div>
+              ${(hasValidOffrNo(bk.officerOffrNo) || bk.officerUnit) ? `
+                <div class="text-xs text-slate-500 mt-0.5">
+                  ${hasValidOffrNo(bk.officerOffrNo) ? `Offr No: <span class="font-semibold text-slate-700">${bk.officerOffrNo}</span>` : ''}
+                  ${(hasValidOffrNo(bk.officerOffrNo) && bk.officerUnit) ? ' • ' : ''}
+                  ${bk.officerUnit ? bk.officerUnit : ''}
+                </div>
+              ` : ''}
+            </td>
+            <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">${formatDisplayDate(bk.checkIn)}</td>
+            <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">${formatDisplayDate(bk.checkOut)}</td>
+            <td class="py-3 px-4">
+              <div>${statusPill}</div>
+              ${bk.remarks ? `<div class="text-[11px] text-slate-500 mt-1 italic">Note: ${bk.remarks}</div>` : ''}
+            </td>
+            <td id="rowActions_${bk.id}" class="py-3 px-4 text-right whitespace-nowrap ${state.isAdmin ? '' : 'hidden'}">
+              <div class="inline-flex items-center gap-1.5">
+                <button onclick="openEditBookingModal('${bk.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slsc-blue hover:text-white text-slate-700 text-xs font-semibold transition cursor-pointer">
+                  Edit
+                </button>
+                <button onclick="confirmDeleteBooking('${bk.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-semibold transition cursor-pointer">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    };
+
+    window.populateBookingUnitsDropdown = function (selectedUnitId = null, selectedRooms = null) {
+      const bId = document.getElementById('bookingBungalowSelect').value;
+      const b = getBungalowById(bId);
+      const uSelect = document.getElementById('bookingUnitSelect');
+
+      uSelect.innerHTML = b.units.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+      if (selectedUnitId && b.units.some(u => u.id === selectedUnitId)) {
+        uSelect.value = selectedUnitId;
+      }
+      updateUnitSpecBanner();
+      renderMixedRoomCheckboxes(selectedRooms);
+      window.checkBookingConflictLive();
+    };
+
+    function renderMixedRoomCheckboxes(preSelectedRooms = null) {
+      const bId = document.getElementById('bookingBungalowSelect').value;
+      const uId = document.getElementById('bookingUnitSelect').value;
+      const unit = getUnitById(bId, uId);
+      const container = document.getElementById('mixedRoomSelectorContainer');
+      const checkboxesDiv = document.getElementById('mixedRoomCheckboxes');
+
+      if (!unit.allowIndividualRooms || !unit.rooms || unit.rooms.length <= 1) {
+        container.classList.add('hidden');
+        checkboxesDiv.innerHTML = '';
+        return;
+      }
+
+      container.classList.remove('hidden');
+      const checkIn = document.getElementById('bookingCheckIn')?.value || todayStr;
+      const checkOut = document.getElementById('bookingCheckOut')?.value || addDaysISO(todayStr, 1);
+      const editId = document.getElementById('editBookingId')?.value;
+
+      const conflictingBookings = state.bookings.filter(bk => {
+        if (editId && bk.id === editId) return false;
+        if (!doesBookingAffectUnit(bId, uId, bk)) return false;
+        return doDateRangesOverlap(checkIn, checkOut, bk.checkIn, bk.checkOut);
+      });
+
+      const bookedRoomIds = new Set();
+      conflictingBookings.forEach(bk => {
+        if (bk.selectedRooms && Array.isArray(bk.selectedRooms)) {
+          bk.selectedRooms.forEach(r => bookedRoomIds.add(r));
+        } else {
+          unit.rooms.forEach(r => bookedRoomIds.add(r.id));
+        }
+      });
+
+      const defaultSelected = preSelectedRooms || unit.rooms.filter(r => !bookedRoomIds.has(r.id)).map(r => r.id);
+
+      checkboxesDiv.innerHTML = unit.rooms.map(room => {
+        const isBooked = bookedRoomIds.has(room.id);
+        const isChecked = defaultSelected.includes(room.id) && !isBooked;
+
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl border transition ${
+            isBooked
+              ? 'bg-rose-50 border-rose-200 opacity-60 cursor-not-allowed'
+              : 'bg-white border-amber-200 hover:border-amber-400 cursor-pointer'
+          }">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" name="bookingRoomCheckbox" value="${room.id}" ${isChecked ? 'checked' : ''} ${isBooked ? 'disabled' : ''} onchange="checkBookingConflictLive()" class="w-4 h-4 text-slsc-navy rounded border-slate-300 focus:ring-slsc-blue" />
+              <div>
+                <span class="text-xs font-bold text-slate-900">${room.name}</span>
+                <span class="text-[11px] font-semibold ml-1.5 px-1.5 py-0.5 rounded ${room.type === 'A/C' ? 'bg-sky-100 text-sky-800' : 'bg-slate-200 text-slate-700'}">${room.type}</span>
+              </div>
+            </div>
+            <span class="text-[11px] font-bold ${isBooked ? 'text-rose-600' : 'text-emerald-700'}">
+              ${isBooked ? 'Already Booked' : 'Available'}
+            </span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    window.handleCheckInChange = function () {
+      const checkIn = document.getElementById('bookingCheckIn').value;
+      const checkOutEl = document.getElementById('bookingCheckOut');
+      if (checkIn && (!checkOutEl.value || checkOutEl.value < checkIn)) {
+        checkOutEl.value = addDaysISO(checkIn, 1);
+      }
+      renderMixedRoomCheckboxes();
+      window.checkBookingConflictLive();
+    };
+
+    window.checkBookingConflictLive = function () {
+      updateUnitSpecBanner();
+      const editId = document.getElementById('editBookingId').value;
+      const bId = document.getElementById('bookingBungalowSelect').value;
+      const uId = document.getElementById('bookingUnitSelect').value;
+      const checkIn = document.getElementById('bookingCheckIn').value;
+      const checkOut = document.getElementById('bookingCheckOut').value;
+      const unit = getUnitById(bId, uId);
+
+      const checkboxes = document.querySelectorAll('input[name="bookingRoomCheckbox"]:checked');
+      const selectedRooms = Array.from(checkboxes).map(cb => cb.value);
+
+      const warningBox = document.getElementById('conflictWarningBox');
+      const submitBtn = document.getElementById('saveBookingSubmitBtn');
+
+      if (!checkIn || !checkOut) {
+        warningBox.classList.add('hidden');
+        return false;
+      }
+
+      if (checkOut < checkIn) {
+        warningBox.classList.remove('hidden');
+        document.getElementById('conflictDetailsText').textContent = 'Check-Out date cannot be earlier than Check-In date.';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return true;
+      }
+
+      const conflictingBookings = state.bookings.filter(bk => {
+        if (editId && bk.id === editId) return false;
+        if (!doesBookingAffectUnit(bId, uId, bk)) return false;
+        return doDateRangesOverlap(checkIn, checkOut, bk.checkIn, bk.checkOut);
+      });
+
+      let roomConflict = false;
+      let conflictMsg = '';
+
+      if (unit.allowIndividualRooms && unit.rooms && unit.rooms.length > 1) {
+        conflictingBookings.forEach(bk => {
+          const bookedUnit = getUnitById(bId, bk.unitId);
+          if (bookedUnit?.isEntireBungalow) {
+            roomConflict = true;
+            conflictMsg = `Entire Bungalow is already booked by ${formatPersonFullDisplay(bk.officerRank, bk.officerName)} from ${formatDisplayDate(bk.checkIn)} to ${formatDisplayDate(bk.checkOut)}.`;
+            return;
+          }
+          const bookedRooms = bk.selectedRooms || [];
+          const overlap = selectedRooms.some(rId => bookedRooms.includes(rId));
+          if (overlap) {
+            roomConflict = true;
+            const roomNames = unit.rooms.filter(r => bookedRooms.includes(r.id)).map(r => r.name).join(', ');
+            conflictMsg = `Selected room(s) already booked by ${formatPersonFullDisplay(bk.officerRank, bk.officerName)} (${roomNames}) from ${formatDisplayDate(bk.checkIn)} to ${formatDisplayDate(bk.checkOut)}.`;
+          }
+        });
+      } else {
+        if (conflictingBookings.length > 0) {
+          roomConflict = true;
+          const bk = conflictingBookings[0];
+          const bookedUnit = getUnitById(bId, bk.unitId);
+          conflictMsg = `${bookedUnit.name} already booked by ${formatPersonFullDisplay(bk.officerRank, bk.officerName)} from ${formatDisplayDate(bk.checkIn)} to ${formatDisplayDate(bk.checkOut)}.`;
+        }
+      }
+
+      if (roomConflict) {
+        warningBox.classList.remove('hidden');
+        document.getElementById('conflictDetailsText').textContent = conflictMsg;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return true;
+      } else {
+        warningBox.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        return false;
+      }
+    };
+
+    window.handlePersonnelAutocomplete = function (queryText) {
+      const dropdown = document.getElementById('personnelDropdownList');
+      const clearBtn = document.getElementById('clearSelectedPersonBtn');
+      const rawText = (queryText || '').trim();
+      const q = rawText.toLowerCase();
+
+      const form = document.getElementById('bookingForm');
+      if (form) {
+        delete form.dataset.officerName;
+        delete form.dataset.officerRank;
+        delete form.dataset.officerOffrNo;
+        delete form.dataset.officerUnit;
+        form.dataset.isNewPerson = 'false';
+      }
+      document.getElementById('selectedPersonnelId').value = '';
+      document.getElementById('selectedPersonnelCard').classList.add('hidden');
+
+      if (q.length > 0) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+
+      const matches = state.personnel.filter(p => {
+        if (!q) return true;
+        return `${p.offrNo || ''} ${p.rank || ''} ${p.name || ''} ${p.unit || ''}`.toLowerCase().includes(q);
+      });
+
+      window._lastAutocompleteMatches = matches;
+
+      const exactMatch = state.personnel.some(p =>
+        formatPersonFullDisplay(p.rank, p.name).toLowerCase() === q ||
+        (p.name || '').trim().toLowerCase() === q
+      );
+
+      let quickAddBannerHtml = '';
+      if (rawText.length > 0 && !exactMatch) {
+        const escapedDisplay = rawText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        quickAddBannerHtml = `
+          <div onclick="window.selectNewTypedPersonnel()" class="p-3 bg-emerald-50 hover:bg-emerald-100 cursor-pointer transition flex items-center justify-between gap-2 border-b border-emerald-200">
+            <div>
+              <div class="text-xs font-extrabold text-emerald-900">+ Add "${escapedDisplay}" as New Person</div>
+              <div class="text-[11px] text-emerald-700">Saves to Personnel Directory & books immediately (No Offr No/Rank needed)</div>
+            </div>
+            <span class="shrink-0 text-[11px] font-bold bg-emerald-600 text-white px-2.5 py-1 rounded-lg">Use Name ✓</span>
+          </div>
+        `;
+      }
+
+      if (matches.length === 0 && !quickAddBannerHtml) {
+        dropdown.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center">Start typing a name to search or add a new person.</div>`;
+        dropdown.classList.remove('hidden');
+        return;
+      }
+
+      const matchesHtml = matches.map((p, idx) => {
+        const validOffr = hasValidOffrNo(p.offrNo);
+        return `
+          <div onclick="window.selectPersonnelByIndex(${idx})" class="p-2.5 hover:bg-blue-50 cursor-pointer transition flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                ${validOffr ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slsc-navy text-white">${p.offrNo}</span>` : ''}
+                <span class="text-xs font-bold text-slate-900">${formatPersonFullDisplay(p.rank, p.name)}</span>
+              </div>
+              ${p.unit ? `<div class="text-[11px] text-slate-500 mt-0.5">${p.unit}</div>` : ''}
+            </div>
+            <span class="text-[11px] font-bold text-slsc-blue">Select →</span>
+          </div>
+        `;
+      }).join('');
+
+      dropdown.innerHTML = quickAddBannerHtml + matchesHtml;
+      dropdown.classList.remove('hidden');
+    };
+
+    window.clearSelectedPersonnel = function () {
+      document.getElementById('selectedPersonnelId').value = '';
+      document.getElementById('personnelSearchInput').value = '';
+      document.getElementById('clearSelectedPersonBtn').classList.add('hidden');
+      document.getElementById('selectedPersonnelCard').classList.add('hidden');
+      document.getElementById('personnelDropdownList').classList.add('hidden');
+      const form = document.getElementById('bookingForm');
+      if (form) {
+        delete form.dataset.officerName;
+        delete form.dataset.officerRank;
+        delete form.dataset.officerOffrNo;
+        delete form.dataset.officerUnit;
+        form.dataset.isNewPerson = 'false';
+      }
+    };
+
+    window.openBookingModal = function (preselectBungalowId = null, preselectUnitId = null, preselectDate = null) {
+      if (!state.isAdmin) return;
+
+      document.getElementById('bookingModalTitle').textContent = 'New Bungalow Booking';
+      document.getElementById('saveBookingSubmitBtn').textContent = 'Confirm Booking';
+      document.getElementById('editBookingId').value = '';
+      document.getElementById('bookingForm').reset();
+      window.clearSelectedPersonnel();
+
+      const bSelect = document.getElementById('bookingBungalowSelect');
+      bSelect.innerHTML = BUNGALOWS.map(b => `<option value="${b.id}">${b.number}. ${b.name}</option>`).join('');
+      bSelect.value = preselectBungalowId || state.selectedBungalowId;
+
+      window.populateBookingUnitsDropdown(preselectUnitId);
+
+      const d = preselectDate || state.selectedDate || todayStr;
+      document.getElementById('bookingCheckIn').value = d;
+      document.getElementById('bookingCheckOut').value = addDaysISO(d, 1);
+
+      window.checkBookingConflictLive();
+      window.openModal('bookingModal');
+    };
+
+    window.openEditBookingModal = function (bookingId) {
+      if (!state.isAdmin) return;
+      const bk = state.bookings.find(item => item.id === bookingId);
+      if (!bk) return;
+
+      document.getElementById('bookingModalTitle').textContent = 'Edit Bungalow Booking';
+      document.getElementById('saveBookingSubmitBtn').textContent = 'Update Booking';
+      document.getElementById('editBookingId').value = bk.id;
+
+      const bSelect = document.getElementById('bookingBungalowSelect');
+      bSelect.innerHTML = BUNGALOWS.map(b => `<option value="${b.id}">${b.number}. ${b.name}</option>`).join('');
+      bSelect.value = bk.bungalowId;
+
+      window.populateBookingUnitsDropdown(bk.unitId, bk.selectedRooms);
+
+      document.getElementById('bookingCheckIn').value = bk.checkIn;
+      document.getElementById('bookingCheckOut').value = bk.checkOut;
+
+      window.selectPersonnelItem({
+        id: bk.personnelId || '',
+        offrNo: bk.officerOffrNo,
+        rank: bk.officerRank,
+        name: bk.officerName,
+        unit: bk.officerUnit || '',
+        phone: bk.contactPhone || ''
+      });
+
+      document.getElementById('bookingContactPhone').value = bk.contactPhone || '';
+      document.getElementById('bookingRemarks').value = bk.remarks || '';
+
+      window.checkBookingConflictLive();
+      window.openModal('bookingModal');
+    };
+
+    window.saveBooking = async function (e) {
+      e.preventDefault();
+      if (!state.isAdmin) return;
+      if (window.checkBookingConflictLive()) return;
+
+      const form = document.getElementById('bookingForm');
+      const rawInput = document.getElementById('personnelSearchInput').value.trim();
+
+      if (!form.dataset.officerName && !rawInput) {
+        showToast('Please select or type an officer / guest name.', 'error');
+        return;
+      }
+
+      const editId = document.getElementById('editBookingId').value;
+      const bId = document.getElementById('bookingBungalowSelect').value;
+      const uId = document.getElementById('bookingUnitSelect').value;
+      const unit = getUnitById(bId, uId);
+      const contactPhone = document.getElementById('bookingContactPhone').value.trim();
+      let personnelId = document.getElementById('selectedPersonnelId').value || '';
+
+      const checkboxes = document.querySelectorAll('input[name="bookingRoomCheckbox"]:checked');
+      const selectedRooms = checkboxes.length > 0
+        ? Array.from(checkboxes).map(cb => cb.value)
+        : unit.rooms.map(r => r.id);
+
+      const resolvedName = (form.dataset.officerName || rawInput).trim();
+      const resolvedRank = (form.dataset.officerRank || '').trim();
+      const resolvedOffrNo = hasValidOffrNo(form.dataset.officerOffrNo) ? form.dataset.officerOffrNo.trim() : '-';
+      const resolvedUnit = (form.dataset.officerUnit || '').trim();
+
+      const alreadyExists = state.personnel.some(p =>
+        (personnelId && (p.id === personnelId || p.docId === personnelId)) ||
+        formatPersonFullDisplay(p.rank, p.name).toLowerCase() === formatPersonFullDisplay(resolvedRank, resolvedName).toLowerCase() ||
+        (p.name || '').trim().toLowerCase() === resolvedName.toLowerCase()
+      );
+
+      let autoCreatedPerson = false;
+      if (!alreadyExists && resolvedName) {
+        const newPersonId = 'P_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        const newPersonRecord = {
+          id: newPersonId,
+          offrNo: '-',
+          rank: resolvedRank,
+          name: resolvedName,
+          unit: resolvedUnit,
+          phone: contactPhone,
+          notes: 'Added via Booking'
+        };
+
+        try {
+          if (state.db && state.user) {
+            const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
+            await setDoc(doc(personnelCol, newPersonId), newPersonRecord, { merge: true });
+          } else {
+            state.personnel.push(newPersonRecord);
+            document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+            renderPersonnelDirectoryTable();
+          }
+          personnelId = newPersonId;
+          autoCreatedPerson = true;
+        } catch (pErr) {
+          console.error('Auto-create personnel error:', pErr);
+        }
+      }
+
+      const bookingPayload = {
+        bungalowId: bId,
+        unitId: uId,
+        selectedRooms: selectedRooms,
+        checkIn: document.getElementById('bookingCheckIn').value,
+        checkOut: document.getElementById('bookingCheckOut').value,
+        personnelId: personnelId,
+        officerOffrNo: resolvedOffrNo,
+        officerRank: resolvedRank,
+        officerName: resolvedName,
+        officerUnit: resolvedUnit,
+        contactPhone: contactPhone,
+        remarks: document.getElementById('bookingRemarks').value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        if (state.db && state.user) {
+          const bookingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'bookings');
+          if (editId) {
+            await updateDoc(doc(bookingsCol, editId), bookingPayload);
+            showToast('Booking updated successfully!');
+          } else {
+            await addDoc(bookingsCol, bookingPayload);
+            showToast(autoCreatedPerson
+              ? `Saved "${resolvedName}" to Personnel & confirmed booking!`
+              : 'New bungalow booking confirmed!');
+          }
+        } else {
+          if (editId) {
+            const idx = state.bookings.findIndex(b => b.id === editId);
+            if (idx !== -1) state.bookings[idx] = { id: editId, ...bookingPayload };
+          } else {
+            state.bookings.push({ id: 'local_' + Date.now(), ...bookingPayload });
+          }
+          renderAllViews();
+          showToast(autoCreatedPerson
+            ? `Saved "${resolvedName}" to Personnel & confirmed booking!`
+            : 'Booking saved (Local Mode).');
+        }
+
+        state.selectedBungalowId = bookingPayload.bungalowId;
+        window.selectCalendarDate(bookingPayload.checkIn);
+        window.closeModal('bookingModal');
+      } catch (err) {
+        console.error('Error saving booking:', err);
+        showToast('Failed to save booking. Check connection.', 'error');
+      }
+    };
+
+    window.confirmDeleteBooking = function (bookingId) {
+      if (!state.isAdmin) return;
+      const bk = state.bookings.find(item => item.id === bookingId);
+      if (!bk) return;
+
+      document.getElementById('confirmDialogTitle').textContent = 'Delete Bungalow Booking?';
+      document.getElementById('confirmDialogMessage').textContent =
+        `Remove reservation for ${formatPersonFullDisplay(bk.officerRank, bk.officerName)} (${formatDisplayDate(bk.checkIn)} – ${formatDisplayDate(bk.checkOut)})?`;
+
+      const proceedBtn = document.getElementById('confirmDialogProceedBtn');
+      proceedBtn.onclick = async () => {
+        window.closeModal('confirmDialogModal');
+        try {
+          if (state.db && state.user) {
+            await deleteDoc(doc(state.db, 'artifacts', state.appId, 'public', 'data', 'bookings', bookingId));
+          } else {
+            state.bookings = state.bookings.filter(item => item.id !== bookingId);
+            renderAllViews();
+          }
+          showToast('Booking deleted.');
+        } catch (err) {
+          console.error('Delete booking error:', err);
+          showToast('Could not delete booking.', 'error');
+        }
+      };
+
+      window.openModal('confirmDialogModal');
+    };
+
+    window.openBulkDeleteModal = function () {
+      if (!state.isAdmin) return;
+      document.getElementById('bulkDeleteMonthInput').value = '';
+      window.openModal('bulkDeleteModal');
+    };
+
+    window.executeBulkDelete = async function (e) {
+      e.preventDefault();
+      if (!state.isAdmin) return;
+
+      const targetMonth = document.getElementById('bulkDeleteMonthInput').value;
+      if (!targetMonth) return;
+
+      const matching = state.bookings.filter(bk => {
+        return (bk.checkOut && bk.checkOut.startsWith(targetMonth)) || (bk.checkIn && bk.checkIn.startsWith(targetMonth));
+      });
+
+      if (matching.length === 0) {
+        showToast('No bookings found for the selected month.', 'warning');
+        window.closeModal('bulkDeleteModal');
+        return;
+      }
+
+      window.closeModal('bulkDeleteModal');
+      document.getElementById('confirmDialogTitle').textContent = `Delete ${matching.length} Booking(s)?`;
+      document.getElementById('confirmDialogMessage').textContent =
+        `Are you sure you want to permanently delete all ${matching.length} reservation records for ${targetMonth}?`;
+
+      const proceedBtn = document.getElementById('confirmDialogProceedBtn');
+      proceedBtn.onclick = async () => {
+        window.closeModal('confirmDialogModal');
+        try {
+          if (state.db && state.user) {
+            const bookingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'bookings');
+            for (const bk of matching) {
+              await deleteDoc(doc(bookingsCol, bk.id));
+            }
+          } else {
+            const matchingIds = new Set(matching.map(m => m.id));
+            state.bookings = state.bookings.filter(b => !matchingIds.has(b.id));
+            renderAllViews();
+          }
+          showToast(`Successfully deleted ${matching.length} records for ${targetMonth}!`);
+        } catch (err) {
+          console.error('Bulk delete error:', err);
+          showToast('Failed to delete records.', 'error');
+        }
+      };
+
+      window.openModal('confirmDialogModal');
+    };
+
+    window.openQuickAddPersonnelFromBooking = function () {
+      window.closeModal('bookingModal');
+      window.switchMainTab('personnel');
+      window.switchPersonnelTab('single', true);
+    };
+
+    window.switchPersonnelTab = function (tabName, resetForm = false) {
+      const tabs = ['list', 'single', 'bulk'];
+      tabs.forEach(t => {
+        const panel = document.getElementById(`personnelTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const btn = document.getElementById(`dirSubBtn_${t}`);
+        if (t === tabName) {
+          panel?.classList.remove('hidden');
+          if (btn) btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slsc-gold text-slsc-navy cursor-pointer';
+        } else {
+          panel?.classList.add('hidden');
+          if (btn) btn.className = `${state.isAdmin ? '' : 'hidden '}px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white cursor-pointer`;
+        }
+      });
+
+      if (tabName === 'single' && resetForm) {
+        document.getElementById('editPersonDocId').value = '';
+        document.getElementById('singlePersonFormTitle').textContent = 'Add New Officer / Personnel';
+        document.getElementById('personOffrNoInput').value = '';
+        document.getElementById('personRankInput').value = '';
+        document.getElementById('personNameInput').value = '';
+        document.getElementById('personUnitInput').value = '';
+        document.getElementById('personPhoneInput').value = '';
+        document.getElementById('personNotesInput').value = '';
+      }
+    };
+
+    window.editPersonnelRecord = function (docId) {
+      const p = state.personnel.find(item => (item.docId === docId || item.id === docId));
+      if (!p) return;
+
+      window.switchPersonnelTab('single', false);
+      document.getElementById('editPersonDocId').value = p.docId || p.id;
+      document.getElementById('singlePersonFormTitle').textContent = `Edit Record: ${p.name}`;
+      document.getElementById('personOffrNoInput').value = hasValidOffrNo(p.offrNo) ? p.offrNo : '';
+      document.getElementById('personRankInput').value = p.rank || '';
+      document.getElementById('personNameInput').value = p.name || '';
+      document.getElementById('personUnitInput').value = p.unit || '';
+      document.getElementById('personPhoneInput').value = p.phone || '';
+      document.getElementById('personNotesInput').value = p.notes || '';
+    };
+
+    window.saveSinglePersonnel = async function (e) {
+      e.preventDefault();
+      if (!state.isAdmin) return;
+
+      const existingDocId = document.getElementById('editPersonDocId').value;
+      const offrNoRaw = document.getElementById('personOffrNoInput').value.trim();
+      const offrNo = hasValidOffrNo(offrNoRaw) ? offrNoRaw : '-';
+      const rank = document.getElementById('personRankInput').value.trim();
+      const name = document.getElementById('personNameInput').value.trim();
+      const unit = document.getElementById('personUnitInput').value.trim();
+      const phone = document.getElementById('personPhoneInput').value.trim();
+      const notes = document.getElementById('personNotesInput').value.trim();
+
+      const idBase = hasValidOffrNo(offrNo) ? offrNo : name;
+      const sanitizedId = existingDocId || idBase.replace(/[^a-zA-Z0-9]/g, '_') || ('P_' + Date.now());
+      const record = { id: sanitizedId, offrNo, rank, name, unit, phone, notes };
+
+      try {
+        if (state.db && state.user) {
+          const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
+          await setDoc(doc(personnelCol, sanitizedId), record, { merge: true });
+        } else {
+          const idx = state.personnel.findIndex(p => p.id === sanitizedId);
+          if (idx !== -1) state.personnel[idx] = record;
+          else state.personnel.push(record);
+          document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+          renderPersonnelDirectoryTable();
+        }
+        showToast(`Saved ${formatPersonFullDisplay(rank, name)} to directory!`);
+        window.switchPersonnelTab('list');
+      } catch (err) {
+        console.error('Save personnel error:', err);
+        showToast('Failed to save personnel record.', 'error');
+      }
+    };
+
+    window.processBulkPersonnelImport = async function () {
+      if (!state.isAdmin) return;
+      const raw = document.getElementById('bulkPasteTextarea').value.trim();
+      if (!raw) {
+        showToast('Please paste rows from Excel or CSV first.', 'warning');
+        return;
+      }
+
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const parsedRecords = [];
+
+      for (const line of lines) {
+        const parts = line.includes('\t') ? line.split('\t') : line.split(',');
+        if (parts.length < 1) continue;
+
+        let offrNo = '-';
+        let rank = '';
+        let name = '';
+        let unit = '';
+        let phone = '';
+
+        if (parts.length >= 3) {
+          offrNo = hasValidOffrNo(parts[0]) ? parts[0].trim() : '-';
+          rank = (parts[1] || '').trim();
+          name = (parts[2] || '').trim();
+          unit = (parts[3] || '').trim();
+          phone = (parts[4] || '').trim();
+        } else {
+          name = (parts[0] || '').trim();
+          unit = (parts[1] || '').trim();
+        }
+
+        if (!name || offrNo.toUpperCase() === 'OFFR NO' || name.toUpperCase() === 'NAME') continue;
+
+        const idSeed = hasValidOffrNo(offrNo) ? offrNo : name;
+        const sanitizedId = idSeed.replace(/[^a-zA-Z0-9]/g, '_') || ('P_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+        parsedRecords.push({ id: sanitizedId, offrNo, rank, name, unit, phone, notes: '' });
+      }
+
+      if (parsedRecords.length === 0) {
+        showToast('No valid rows detected. Format: Offr No | Rank | Name | Unit (or Name only)', 'error');
+        return;
+      }
+
+      try {
+        if (state.db && state.user) {
+          const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
+          for (const rec of parsedRecords) {
+            await setDoc(doc(personnelCol, rec.id), rec, { merge: true });
+          }
+        } else {
+          for (const rec of parsedRecords) {
+            const idx = state.personnel.findIndex(p => p.id === rec.id);
+            if (idx !== -1) state.personnel[idx] = rec;
+            else state.personnel.push(rec);
+          }
+          document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+          renderPersonnelDirectoryTable();
+        }
+        document.getElementById('bulkPasteTextarea').value = '';
+        showToast(`Successfully imported ${parsedRecords.length} personnel records!`);
+        window.switchPersonnelTab('list');
+      } catch (err) {
+        console.error('Bulk import error:', err);
+        showToast('Error importing records.', 'error');
+      }
+    };
+
+    function triggerCsvDownload(csvString, filename) {
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    window.downloadBookingsCSV = function () {
+      if (!state.isAdmin) return;
+      if (state.bookings.length === 0) {
+        showToast('No bookings available to export.', 'warning');
+        return;
+      }
+
+      let csvContent = "Booking ID,Bungalow,Unit/Floor,Officer No,Rank,Name,Unit,Check-In,Check-Out,Contact Phone,Remarks\r\n";
+
+      state.bookings.forEach(bk => {
+        const b = getBungalowById(bk.bungalowId);
+        const u = getUnitById(bk.bungalowId, bk.unitId);
+        const row = [
+          bk.id,
+          `"${b.name.replace(/"/g, '""')}"`,
+          `"${u.name.replace(/"/g, '""')}"`,
+          `"${(bk.officerOffrNo || '').replace(/"/g, '""')}"`,
+          `"${(bk.officerRank || '').replace(/"/g, '""')}"`,
+          `"${(bk.officerName || '').replace(/"/g, '""')}"`,
+          `"${(bk.officerUnit || '').replace(/"/g, '""')}"`,
+          bk.checkIn,
+          bk.checkOut,
+          `"${(bk.contactPhone || '').replace(/"/g, '""')}"`,
+          `"${(bk.remarks || '').replace(/"/g, '""')}"`
+        ];
+        csvContent += row.join(",") + "\r\n";
+      });
+
+      triggerCsvDownload(csvContent, `SLSC_Bookings_Report_${new Date().toISOString().slice(0,10)}.csv`);
+      showToast('Bookings CSV downloaded successfully!');
+    };
+
+    window.downloadPersonnelCSV = function () {
+      if (!state.isAdmin) return;
+      if (state.personnel.length === 0) {
+        showToast('No personnel records available to export.', 'warning');
+        return;
+      }
+
+      let csvContent = "Officer No,Rank,Name with Initials & Decorations,Unit,Contact Phone,Notes\r\n";
+
+      state.personnel.forEach(p => {
+        const row = [
+          `"${(p.offrNo || '').replace(/"/g, '""')}"`,
+          `"${(p.rank || '').replace(/"/g, '""')}"`,
+          `"${(p.name || '').replace(/"/g, '""')}"`,
+          `"${(p.unit || '').replace(/"/g, '""')}"`,
+          `"${(p.phone || '').replace(/"/g, '""')}"`,
+          `"${(p.notes || '').replace(/"/g, '""')}"`
+        ];
+        csvContent += row.join(",") + "\r\n";
+      });
+
+      triggerCsvDownload(csvContent, `SLSC_Personnel_Directory_${new Date().toISOString().slice(0,10)}.csv`);
+      showToast('Personnel Directory CSV downloaded successfully!');
+    };
+
+    window.openSettingsModal = function () {
+      updateSettingsModalLinks();
+      window.openModal('settingsModal');
+    };
+
+    window.copyInputText = function (inputId) {
+      const el = document.getElementById(inputId);
+      el.select();
+      el.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+      showToast('Link copied to clipboard!');
+    };
+
+    window.updateAdminPasscodeSetting = async function (e) {
+      e.preventDefault();
+      const newCode = document.getElementById('newPasscodeInput').value.trim();
+      if (newCode.length < 4) return;
+
+      state.adminPasscode = newCode;
+      updateSettingsModalLinks();
+      document.getElementById('newPasscodeInput').value = '';
+
+      try {
+        if (state.db && state.user) {
+          const settingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'settings');
+          await setDoc(doc(settingsCol, 'adminConfig'), { passcode: newCode }, { merge: true });
+        }
+        showToast('Admin passcode updated! Copy your new Magic Link.');
+      } catch (err) {
+        console.error('Passcode update error:', err);
+        showToast('Passcode updated locally.', 'warning');
+      }
+    };
+
+    window.openModal = function (id) {
+      document.getElementById(id).classList.remove('hidden');
+    };
+
+    window.closeModal = function (id) {
+      document.getElementById(id).classList.add('hidden');
+    };
+
+    // -----------------------------------------------------------------------
+    // 6. INTERNAL FUNCTIONS
+    // -----------------------------------------------------------------------
+    function updateUnitSpecBanner() {
+      const bId = document.getElementById('bookingBungalowSelect').value;
+      const uId = document.getElementById('bookingUnitSelect').value;
+      const unit = getUnitById(bId, uId);
+      document.getElementById('unitSpecCapacity').textContent = `Capacity: ${unit.capacity}`;
+      document.getElementById('unitSpecAc').textContent = unit.ac;
+    }
+
+    function renderBungalowPillTabs() {
+      const container = document.getElementById('bungalowPillTabs');
+      if (!container) return;
+      const targetDate = state.selectedDate;
+
+      container.innerHTML = BUNGALOWS.map(b => {
+        const isSelected = b.id === state.selectedBungalowId;
+        const totalUnits = b.units.length;
+        const bookedCount = getBookedUnitCountForDate(b.id, targetDate);
+
+        let dotColor = 'bg-emerald-500';
+        if (bookedCount > 0 && bookedCount < totalUnits) dotColor = 'bg-amber-500';
+        else if (bookedCount >= totalUnits) dotColor = 'bg-rose-500';
+
+        return `
+          <button type="button" onclick="selectBungalow('${b.id}')" class="px-3.5 py-2.5 rounded-xl border text-left transition shrink-0 flex items-center gap-2.5 cursor-pointer ${
+            isSelected
+              ? 'bg-slsc-navy text-white border-slsc-navy shadow-md ring-2 ring-slsc-gold/60'
+              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+          }">
+            <span class="w-2.5 h-2.5 rounded-full ${dotColor} shrink-0"></span>
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-slsc-gold' : 'text-slate-500'}">Bungalow ${b.number}</div>
+              <div class="text-xs sm:text-sm font-extrabold truncate max-w-[160px]">${b.location}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderSelectedBungalowDetails() {
+      const b = getBungalowById(state.selectedBungalowId);
+      const targetDate = state.selectedDate;
+      const formattedDate = targetDate === todayStr ? `Today (${formatDisplayDate(targetDate)})` : formatDisplayDate(targetDate);
+
+      const activeBookings = state.bookings.filter(bk => bk.bungalowId === b.id && isDateOccupiedByBooking(targetDate, bk));
+      const entireBungalowBooking = activeBookings.find(bk => getUnitById(b.id, bk.unitId)?.isEntireBungalow);
+
+      document.getElementById('selectedBungalowNumber').textContent = `BUNGALOW ${b.number}`;
+      document.getElementById('selectedBungalowLocation').textContent = b.location;
+      document.getElementById('selectedBungalowTitle').textContent = b.name;
+      document.getElementById('selectedBungalowSummaryPill').textContent = `${activeBookings.length} Active Bookings`;
+
+      document.getElementById('selectedDateLabelBadge').textContent = formattedDate;
+      document.getElementById('inspectorDateText').textContent = formattedDate;
+
+      const subUnitsContainer = document.getElementById('subUnitsList');
+      subUnitsContainer.innerHTML = b.units.map(unit => {
+        const directUnitBookings = activeBookings.filter(bk => bk.unitId === unit.id);
+        const isBlockedByEntire = !unit.isEntireBungalow && !!entireBungalowBooking;
+        const isBooked = directUnitBookings.length > 0 || isBlockedByEntire;
+
+        let statusLabel = 'Available';
+        let statusClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (directUnitBookings.length > 0) {
+          statusLabel = 'Booked';
+          statusClass = 'bg-rose-100 text-rose-800 border-rose-300';
+        } else if (isBlockedByEntire) {
+          statusLabel = 'Booked (Entire)';
+          statusClass = 'bg-rose-100 text-rose-800 border-rose-300';
+        }
+
+        let roomStatusHtml = '';
+        if (unit.rooms && unit.rooms.length > 1) {
+          const isUnitBooked = isBooked;
+          const bookedRoomIds = new Set();
+          directUnitBookings.forEach(bk => {
+            if (bk.selectedRooms) bk.selectedRooms.forEach(r => bookedRoomIds.add(r));
+          });
+
+          roomStatusHtml = `
+            <div class="mt-2.5 space-y-1.5 pt-2 border-t border-slate-100">
+              ${unit.rooms.map(room => {
+                const isRoomBooked = unit.allowIndividualRooms ? (bookedRoomIds.has(room.id) || isBlockedByEntire) : isUnitBooked;
+                return `
+                  <div class="flex items-center justify-between text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg">
+                    <span class="font-bold text-slate-800">${room.name} <span class="font-normal text-slate-500">(${room.type})</span></span>
+                    <span class="font-semibold ${isRoomBooked ? 'text-rose-600' : 'text-emerald-700'}">${isRoomBooked ? 'Booked' : 'Included'}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="rounded-xl p-4 border ${unit.isEntireBungalow ? 'bg-amber-50/40 border-amber-300/80' : 'bg-white border-slate-200'} flex flex-col justify-between transition">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <h5 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">${unit.name}</h5>
+                <span class="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusClass}">
+                  ${statusLabel}
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                <span class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                  ${unit.capacity}
+                </span>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">
+                  ${unit.ac}
+                </span>
+              </div>
+
+              ${roomStatusHtml}
+            </div>
+
+            ${state.isAdmin ? `
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-end">
+                <button onclick="openBookingModal('${b.id}', '${unit.id}', '${targetDate}')" class="text-xs font-bold text-slsc-blue hover:text-slsc-navy flex items-center gap-1 cursor-pointer">
+                  + Book Floor / Unit
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('inspectorCountBadge').textContent = `${activeBookings.length} Bookings`;
+      const inspectorList = document.getElementById('dateInspectorList');
+
+      if (activeBookings.length === 0) {
+        inspectorList.innerHTML = `
+          <div class="bg-white border border-dashed border-slate-300 rounded-xl p-3.5 text-center text-xs text-slate-500">
+            All floors/units at <strong>${b.name}</strong> are free on this date.
+          </div>
+        `;
+      } else {
+        inspectorList.innerHTML = activeBookings.map(bk => {
+          const unit = getUnitById(b.id, bk.unitId);
+          const roomNamesStr = bk.selectedRooms && unit.rooms && unit.rooms.length > 1
+            ? unit.rooms.filter(r => bk.selectedRooms.includes(r.id)).map(r => `${r.name} (${r.type})`).join(', ')
+            : unit.capacity;
+          const validOffr = hasValidOffrNo(bk.officerOffrNo);
+
+          return `
+            <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slsc-navy text-white">${unit.name}</span>
+                <span class="text-[11px] font-semibold text-slate-500">${formatDisplayDate(bk.checkIn)} – ${formatDisplayDate(bk.checkOut)}</span>
+              </div>
+              <p class="text-xs font-bold text-slsc-blue">${roomNamesStr}</p>
+              <p class="text-xs sm:text-sm font-bold text-slate-900">
+                ${formatPersonFullDisplay(bk.officerRank, bk.officerName)}
+              </p>
+              ${(validOffr || bk.officerUnit || bk.contactPhone) ? `
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
+                  ${validOffr ? `<span><strong>Offr No:</strong> ${bk.officerOffrNo}</span>` : ''}
+                  ${bk.officerUnit ? `<span><strong>Unit:</strong> ${bk.officerUnit}</span>` : ''}
+                  ${bk.contactPhone ? `<span><strong>Tel:</strong> ${bk.contactPhone}</span>` : ''}
+                </div>
+              ` : ''}
+              ${bk.remarks ? `<p class="text-[11px] text-slate-500 italic">Note: ${bk.remarks}</p>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      const upcomingHere = state.bookings
+        .filter(bk => bk.bungalowId === b.id && bk.checkOut >= todayStr)
+        .slice(0, 4);
+      const upcomingContainer = document.getElementById('bungalowUpcomingList');
+
+      if (upcomingHere.length === 0) {
+        upcomingContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No upcoming bookings scheduled here.</p>`;
+      } else {
+        upcomingContainer.innerHTML = upcomingHere.map(bk => {
+          const u = getUnitById(b.id, bk.unitId);
+          return `
+            <div onclick="selectCalendarDate('${bk.checkIn}')" class="bg-white hover:bg-blue-50/60 border border-slate-200 rounded-xl p-2.5 text-xs flex items-center justify-between gap-2 cursor-pointer transition">
+              <div>
+                <div class="font-bold text-slate-800">${formatPersonFullDisplay(bk.officerRank, bk.officerName)}</div>
+                <div class="text-[11px] text-slsc-blue font-medium">${u.name}</div>
+              </div>
+              <div class="text-right shrink-0 text-[11px] font-semibold text-slate-600">
+                <div>${formatDisplayDate(bk.checkIn)}</div>
+                <div class="text-slate-400">to ${formatDisplayDate(bk.checkOut)}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderCalendar() {
+      const calBungalowId = state.calendarBungalowId;
+      const unitFilterVal = document.getElementById('calendarUnitFilter')?.value || 'ALL';
+      const year = state.calendarYear;
+      const month = state.calendarMonth;
+
+      const monthDate = new Date(year, month, 1);
+      document.getElementById('calendarMonthTitle').textContent = monthDate.toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+      });
+
+      const firstDayWeekday = monthDate.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let totalCapacityUnits = 0;
+      if (calBungalowId === 'ALL') {
+        totalCapacityUnits = BUNGALOWS.reduce((sum, b) => sum + b.units.length, 0);
+      } else {
+        const b = getBungalowById(calBungalowId);
+        totalCapacityUnits = unitFilterVal === 'ALL' ? b.units.length : 1;
+      }
+
+      const relevantBookings = state.bookings.filter(bk => {
+        if (calBungalowId !== 'ALL' && bk.bungalowId !== calBungalowId) return false;
+        if (calBungalowId !== 'ALL' && unitFilterVal !== 'ALL' && !doesBookingAffectUnit(calBungalowId, unitFilterVal, bk)) return false;
+        return true;
+      });
+
+      let cellsHtml = '';
+      for (let i = 0; i < firstDayWeekday; i++) {
+        cellsHtml += `<div class="h-16 sm:h-20 rounded-xl bg-slate-50/50 border border-transparent"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayBookings = relevantBookings.filter(bk => isDateOccupiedByBooking(iso, bk));
+
+        let uniqueBookedKeys = 0;
+        if (calBungalowId === 'ALL') {
+          uniqueBookedKeys = BUNGALOWS.reduce((sum, b) => sum + getBookedUnitCountForDate(b.id, iso, dayBookings), 0);
+        } else if (unitFilterVal === 'ALL') {
+          uniqueBookedKeys = getBookedUnitCountForDate(calBungalowId, iso, dayBookings);
+        } else {
+          uniqueBookedKeys = dayBookings.length > 0 ? 1 : 0;
+        }
+
+        const isSelected = iso === state.selectedDate;
+        const isToday = iso === todayStr;
+
+        let bgClass = 'bg-emerald-50/70 border-emerald-200/80 hover:bg-emerald-100/70 text-slate-800';
+        let badgeHtml = `<span class="text-[10px] font-medium text-emerald-700 hidden sm:inline">Free</span>`;
+
+        if (uniqueBookedKeys > 0 && uniqueBookedKeys < totalCapacityUnits) {
+          bgClass = 'bg-amber-50 border-amber-300 hover:bg-amber-100/80 text-amber-950';
+          badgeHtml = `<span class="text-[10px] font-bold text-amber-800">${uniqueBookedKeys}/${totalCapacityUnits} Booked</span>`;
+        } else if (uniqueBookedKeys >= totalCapacityUnits && totalCapacityUnits > 0) {
+          bgClass = 'bg-rose-50 border-rose-300 hover:bg-rose-100/80 text-rose-950';
+          badgeHtml = `<span class="text-[10px] font-bold text-rose-700">Full</span>`;
+        }
+
+        const selectedRing = isSelected ? 'ring-2 ring-slsc-blue border-slsc-blue shadow-sm' : '';
+        const todayDot = isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-slsc-blue" title="Today"></span>` : '';
+
+        const firstBooker = dayBookings[0]
+          ? `<div class="text-[10px] truncate font-semibold opacity-85 hidden md:block">${formatPersonFullDisplay(dayBookings[0].officerRank, dayBookings[0].officerName.split(' ')[0])}</div>`
+          : '';
+
+        cellsHtml += `
+          <button type="button" onclick="selectCalendarDate('${iso}')" class="h-16 sm:h-20 p-1.5 sm:p-2 rounded-xl border text-left flex flex-col justify-between transition cursor-pointer ${bgClass} ${selectedRing}">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs sm:text-sm font-bold ${isToday ? 'text-slsc-blue underline' : ''}">${day}</span>
+              ${todayDot}
+            </div>
+            <div class="w-full">
+              ${firstBooker}
+              <div>${badgeHtml}</div>
+            </div>
+          </button>
+        `;
+      }
+
+      document.getElementById('calendarDaysGrid').innerHTML = cellsHtml;
+      renderCalendarSideInspector(relevantBookings);
+    }
+
+    function renderCalendarSideInspector(relevantBookings) {
+      const iso = state.selectedDate;
+      const dayBookings = relevantBookings.filter(bk => isDateOccupiedByBooking(iso, bk));
+
+      document.getElementById('calendarInspectorDateHeading').textContent =
+        iso === todayStr ? `Today (${formatDisplayDate(iso)})` : formatDisplayDate(iso);
+      document.getElementById('calendarInspectorBadge').textContent = `${dayBookings.length} Booked`;
+
+      const listEl = document.getElementById('calendarDayBookingsList');
+      if (dayBookings.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white border border-dashed border-slate-300 rounded-xl p-4 text-center text-xs text-slate-500">
+            No bookings recorded on <strong>${formatDisplayDate(iso)}</strong> for this selection.
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = dayBookings.map(bk => {
+          const b = getBungalowById(bk.bungalowId);
+          const u = getUnitById(bk.bungalowId, bk.unitId);
+          const metaParts = [
+            hasValidOffrNo(bk.officerOffrNo) ? bk.officerOffrNo : '',
+            bk.officerUnit || '',
+            `${formatDisplayDate(bk.checkIn)} to ${formatDisplayDate(bk.checkOut)}`
+          ].filter(Boolean);
+
+          return `
+            <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-slsc-gold/25 text-slsc-navy">${b.name}</span>
+                ${state.isAdmin ? `
+                  <button onclick="openEditBookingModal('${bk.id}')" class="text-[11px] font-bold text-slsc-blue hover:underline cursor-pointer">Edit</button>
+                ` : ''}
+              </div>
+              <div class="text-xs font-bold text-slsc-blue">${u.name}</div>
+              <div class="text-xs sm:text-sm font-bold text-slate-900">${formatPersonFullDisplay(bk.officerRank, bk.officerName)}</div>
+              <div class="text-[11px] text-slate-600">
+                ${metaParts.join(' • ')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    window.renderPersonnelDirectoryTable = function () {
+      const q = (document.getElementById('directorySearchInput')?.value || '').toLowerCase().trim();
+      const tbody = document.getElementById('personnelDirectoryTableBody');
+      if (!tbody) return;
+
+      const filtered = state.personnel.filter(p => {
+        if (!q) return true;
+        return `${p.offrNo || ''} ${p.rank || ''} ${p.name || ''} ${p.unit || ''} ${p.phone || ''}`.toLowerCase().includes(q);
+      });
+
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-bold text-slsc-navy whitespace-nowrap">${hasValidOffrNo(p.offrNo) ? p.offrNo : '-'}</td>
+          <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">${p.rank || '-'}</td>
+          <td class="py-3 px-4 font-medium text-slate-900">${p.name}</td>
+          <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${p.unit || '-'}</td>
+          <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${p.phone || '-'}</td>
+          ${state.isAdmin ? `
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <div class="inline-flex items-center gap-1.5">
+                <button onclick="editPersonnelRecord('${p.docId || p.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slsc-blue hover:text-white text-slate-700 text-xs font-semibold transition cursor-pointer">
+                  Edit
+                </button>
+                <button onclick="confirmDeletePersonnel('${p.docId || p.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-semibold transition cursor-pointer">
+                  Delete
+                </button>
+              </div>
+            </td>
+          ` : ''}
+        </tr>
+      `).join('');
+    };
+
+    function renderAllViews() {
+      renderBungalowPillTabs();
+      renderSelectedBungalowDetails();
+      renderCalendar();
+      renderBookingsList();
+      renderPersonnelDirectoryTable();
+      renderTariffTable();
+    }
+
+    function checkUrlAdminParam() {
+      const params = new URLSearchParams(window.location.search);
+      const adminParam = params.get('admin');
+      if (adminParam && adminParam === state.adminPasscode) {
+        setAdminMode(true, false);
+      }
+    }
+
+    function setAdminMode(enable, notify = true) {
+      state.isAdmin = enable;
+      const modeBadge = document.getElementById('modeBadge');
+      const toggleBtn = document.getElementById('adminToggleBtn');
+      const toggleText = document.getElementById('adminToggleText');
+      const adminSubBar = document.getElementById('adminSubBar');
+      const quickBookBtn = document.getElementById('quickBookSelectedBtn');
+      const actionsHeader = document.getElementById('actionsColHeader');
+      const calendarQuickAction = document.getElementById('calendarAdminQuickAction');
+      const dirAddBtnWrap = document.getElementById('directoryAdminAddBtnWrap');
+      const dirActionHeader = document.getElementById('directoryActionHeader');
+      const dirSubSingle = document.getElementById('dirSubBtn_single');
+      const dirSubBulk = document.getElementById('dirSubBtn_bulk');
+      const tariffActionWrap = document.getElementById('tariffAdminActionWrap');
+      const scheduleBulkWrap = document.getElementById('scheduleAdminBulkActionWrap');
+
+      if (enable) {
+        modeBadge.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40 flex items-center gap-1.5';
+        modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Admin Mode (Edit Enabled)</span>`;
+        toggleBtn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white/15 text-white hover:bg-white/25 transition border border-white/20 flex items-center gap-1.5 cursor-pointer';
+        toggleText.textContent = 'Exit Admin';
+        adminSubBar.classList.remove('hidden');
+        quickBookBtn.classList.remove('hidden');
+        actionsHeader.classList.remove('hidden');
+        calendarQuickAction?.classList.remove('hidden');
+        dirAddBtnWrap?.classList.remove('hidden');
+        dirActionHeader?.classList.remove('hidden');
+        dirSubSingle?.classList.remove('hidden');
+        dirSubBulk?.classList.remove('hidden');
+        tariffActionWrap?.classList.remove('hidden');
+        scheduleBulkWrap?.classList.remove('hidden');
+        updateSettingsModalLinks();
+        if (notify) showToast('Admin Mode unlocked. You can now add and edit bookings & tariffs.');
+      } else {
+        modeBadge.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-slate-200 border border-white/15 flex items-center gap-1.5';
+        modeBadge.innerHTML = `<svg class="w-3.5 h-3.5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg><span>Viewer Mode (Read-Only)</span>`;
+        toggleBtn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slsc-gold text-slsc-navy hover:bg-yellow-400 transition shadow-md flex items-center gap-1.5 cursor-pointer';
+        toggleText.textContent = 'Admin Access';
+        adminSubBar.classList.add('hidden');
+        quickBookBtn.classList.add('hidden');
+        actionsHeader.classList.add('hidden');
+        calendarQuickAction?.classList.add('hidden');
+        dirAddBtnWrap?.classList.add('hidden');
+        dirActionHeader?.classList.add('hidden');
+        dirSubSingle?.classList.add('hidden');
+        dirSubBulk?.classList.add('hidden');
+        tariffActionWrap?.classList.add('hidden');
+        scheduleBulkWrap?.classList.add('hidden');
+        window.switchPersonnelTab('list');
+        if (notify) showToast('Switched to Viewer Mode (Read-Only).');
+      }
+
+      renderAllViews();
+    }
+
+    function updateSettingsModalLinks() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const viewerInput = document.getElementById('viewerUrlInput');
+      const adminInput = document.getElementById('adminMagicUrlInput');
+      if (viewerInput) viewerInput.value = baseUrl;
+      if (adminInput) adminInput.value = `${baseUrl}?admin=${encodeURIComponent(state.adminPasscode)}`;
+    }
+
+    async function initFirebase() {
+      try {
+        const defaultFirebaseConfig = {
+          apiKey: "AIzaSyAnIo-eVkDAKQZdCxlRU0QJ4nvAkRrLpS4",
+          authDomain: "test1-dadf2.firebaseapp.com",
+          projectId: "test1-dadf2",
+          storageBucket: "test1-dadf2.firebasestorage.app",
+          messagingSenderId: "900598614635",
+          appId: "1:900598614635:web:0f9a974a67d49a675eff2e",
+          measurementId: "G-SVNNW9J2DL"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+          ? JSON.parse(__firebase_config)
+          : defaultFirebaseConfig;
+
+        const app = initializeApp(firebaseConfig);
+        state.auth = getAuth(app);
+        state.db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(state.auth, __initial_auth_token);
+          state.user = cred.user;
+        } else {
+          const cred = await signInAnonymously(state.auth);
+          state.user = cred.user;
+        }
+
+        if (!state.user) return;
+
+        const settingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'settings');
+        onSnapshot(settingsCol, (snapshot) => {
+          snapshot.forEach(docSnap => {
+            if (docSnap.id === 'adminConfig' && docSnap.data().passcode) {
+              state.adminPasscode = docSnap.data().passcode;
+              checkUrlAdminParam();
+              updateSettingsModalLinks();
+            }
+          });
+        }, (err) => console.error('Settings sync error:', err));
+
+        const tariffCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'tariffs');
+        onSnapshot(tariffCol, (snapshot) => {
+          snapshot.forEach(docSnap => {
+            if (docSnap.id === 'officialTariffs' && docSnap.data().items) {
+              const savedItems = docSnap.data().items;
+              const existingIds = new Set(savedItems.map(i => i.id));
+              const missingDefaults = INITIAL_TARIFFS.filter(def => !existingIds.has(def.id));
+              state.tariffs = missingDefaults.length > 0 ? [...savedItems, ...missingDefaults] : savedItems;
+              renderTariffTable();
+            }
+          });
+        }, (err) => console.error('Tariffs sync error:', err));
+
+        const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
+        const existingSnap = await getDocs(personnelCol);
+        if (existingSnap.empty) {
+          for (const person of INITIAL_PERSONNEL) {
+            await setDoc(doc(personnelCol, person.id), person);
+          }
+        }
+
+        const appSettingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'settings');
+        const settingsSnap = await getDocs(appSettingsCol);
+        if (settingsSnap.empty) {
+          await setDoc(doc(appSettingsCol, 'adminConfig'), { passcode: 'slsc2027' });
+        }
+
+        onSnapshot(personnelCol, (snapshot) => {
+          const list = [];
+          snapshot.forEach(docSnap => {
+            list.push({ docId: docSnap.id, ...docSnap.data() });
+          });
+          list.sort((a, b) => (a.offrNo || '').localeCompare(b.offrNo || ''));
+          state.personnel = list.length > 0 ? list : [...INITIAL_PERSONNEL];
+          document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+          renderPersonnelDirectoryTable();
+        }, (err) => {
+          console.error('Personnel snapshot error:', err);
+        });
+
+        const bookingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'bookings');
+        onSnapshot(bookingsCol, (snapshot) => {
+          const list = [];
+          snapshot.forEach(docSnap => {
+            list.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          list.sort((a, b) => (a.checkIn || '').localeCompare(b.checkIn || ''));
+          state.bookings = list;
+          updateSyncBadge('Live Cloud Sync', true);
+          renderAllViews();
+        }, (err) => {
+          console.error('Bookings snapshot error:', err);
+          updateSyncBadge('Sync Error', false);
+        });
+
+      } catch (err) {
+        console.error('Firebase init failed:', err);
+        updateSyncBadge('Local Mode', false);
+      }
+    }
+
+    function updateSyncBadge(label, isLive) {
+      const badge = document.getElementById('syncStatusBadge');
+      if (!badge) return;
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span> ${label}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('overviewDatePicker').value = todayStr;
+      document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+
+      const bungalowOptionsHtml = `<option value="ALL">All 6 Bungalows</option>` +
+        BUNGALOWS.map(b => `<option value="${b.id}">${b.number}. ${b.name}</option>`).join('');
+
+      document.getElementById('scheduleBungalowFilter').innerHTML = bungalowOptionsHtml;
+      document.getElementById('calendarBungalowSelect').innerHTML = bungalowOptionsHtml;
+      window.handleCalendarBungalowChange('ALL');
+
+      checkUrlAdminParam();
+      window.selectBungalow('diyathalawa');
+      window.switchMainTab('availability');
+      renderTariffTable();
+
+      initFirebase();
+    });
+  </script>
+</body>
+</html>
