@@ -299,6 +299,10 @@
               <option value="ALL">All 6 Bungalows</option>
             </select>
 
+            <select id="scheduleYearFilter" onchange="renderBookingsList()" title="Filter by Year" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+              <option value="ALL">All Years</option>
+            </select>
+
             <input type="month" id="scheduleMonthFilter" onchange="renderBookingsList()" title="Filter by Month" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
 
             <select id="scheduleTimeFilter" onchange="renderBookingsList()" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue">
@@ -1142,6 +1146,15 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
+    function getBookingRefCode(booking) {
+      const yearSource = booking?.checkIn || booking?.updatedAt || String(new Date().getFullYear());
+      const year = String(yearSource).slice(0, 4) || String(new Date().getFullYear());
+      const rawId = String(booking?.id || '001');
+      const digits = rawId.replace(/\D/g, '');
+      const seq = digits ? digits.slice(-3).padStart(3, '0') : '001';
+      return `SLSC-${year}-${seq}`;
+    }
+
     function isDateOccupiedByBooking(targetDate, booking) {
       if (booking.checkIn === booking.checkOut) {
         return targetDate === booking.checkIn;
@@ -1527,22 +1540,55 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     window.resetScheduleFilters = function () {
       document.getElementById('scheduleSearchInput').value = '';
       document.getElementById('scheduleBungalowFilter').value = 'ALL';
+      const yearEl = document.getElementById('scheduleYearFilter');
+      if (yearEl) yearEl.value = 'ALL';
       document.getElementById('scheduleMonthFilter').value = '';
       document.getElementById('scheduleTimeFilter').value = 'UPCOMING';
       renderBookingsList();
     };
 
+    function syncScheduleYearOptions() {
+      const yearSelect = document.getElementById('scheduleYearFilter');
+      if (!yearSelect) return;
+
+      const prevValue = yearSelect.value || 'ALL';
+      const yearsSet = new Set([String(new Date().getFullYear())]);
+
+      state.bookings.forEach(bk => {
+        if (bk.checkIn && bk.checkIn.length >= 4) yearsSet.add(bk.checkIn.slice(0, 4));
+        if (bk.checkOut && bk.checkOut.length >= 4) yearsSet.add(bk.checkOut.slice(0, 4));
+      });
+
+      const sortedYears = Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+      yearSelect.innerHTML = `<option value="ALL">All Years</option>` +
+        sortedYears.map(yr => `<option value="${yr}">${yr}</option>`).join('');
+
+      if (prevValue === 'ALL' || sortedYears.includes(prevValue)) {
+        yearSelect.value = prevValue;
+      } else {
+        yearSelect.value = 'ALL';
+      }
+    }
+
     window.renderBookingsList = function () {
       const navBadge = document.getElementById('navBookingsCountBadge');
       if (navBadge) navBadge.textContent = state.bookings.length;
 
+      syncScheduleYearOptions();
+
       const search = (document.getElementById('scheduleSearchInput').value || '').toLowerCase().trim();
       const bungalowFilter = document.getElementById('scheduleBungalowFilter').value;
+      const yearFilter = document.getElementById('scheduleYearFilter')?.value || 'ALL';
       const monthFilter = document.getElementById('scheduleMonthFilter').value;
       const timeFilter = document.getElementById('scheduleTimeFilter').value;
 
       const filtered = state.bookings.filter(bk => {
         if (bungalowFilter !== 'ALL' && bk.bungalowId !== bungalowFilter) return false;
+
+        if (yearFilter !== 'ALL') {
+          const inYear = (bk.checkIn && bk.checkIn.startsWith(`${yearFilter}-`)) || (bk.checkOut && bk.checkOut.startsWith(`${yearFilter}-`));
+          if (!inYear) return false;
+        }
 
         if (monthFilter) {
           const inMonth = (bk.checkIn && bk.checkIn.startsWith(monthFilter)) || (bk.checkOut && bk.checkOut.startsWith(monthFilter));
@@ -1588,11 +1634,15 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
         const roomNamesStr = (u.allowIndividualRooms && bk.selectedRooms && u.rooms)
           ? u.rooms.filter(r => bk.selectedRooms.includes(r.id)).map(r => r.name).join(', ')
           : (u.isEntireBungalow ? 'Entire Bungalow' : 'Complete Floor / Unit');
+        const bookingRef = getBookingRefCode(bk);
 
         return `
           <tr class="hover:bg-slate-50 transition">
             <td class="py-3 px-4">
-              <div class="font-bold text-slsc-navy">${b.name}</div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-slsc-navy">${b.name}</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold border border-slate-200">${bookingRef}</span>
+              </div>
               <div class="text-xs text-slsc-blue font-semibold mt-0.5">${u.name} <span class="font-normal text-slate-500">(${roomNamesStr})</span></div>
             </td>
             <td class="py-3 px-4">
@@ -2297,13 +2347,13 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
         return;
       }
 
-      let csvContent = "Booking ID,Bungalow,Unit/Floor,Officer No,Rank,Name,Unit,Check-In,Check-Out,Contact Phone,Remarks\r\n";
+      let csvContent = "Booking Ref ID,Bungalow,Unit/Floor,Officer No,Rank,Name,Unit,Check-In,Check-Out,Contact Phone,Remarks\r\n";
 
       state.bookings.forEach(bk => {
         const b = getBungalowById(bk.bungalowId);
         const u = getUnitById(bk.bungalowId, bk.unitId);
         const row = [
-          bk.id,
+          getBookingRefCode(bk),
           `"${b.name.replace(/"/g, '""')}"`,
           `"${u.name.replace(/"/g, '""')}"`,
           `"${(bk.officerOffrNo || '').replace(/"/g, '""')}"`,
@@ -2944,6 +2994,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
 
       document.getElementById('scheduleBungalowFilter').innerHTML = bungalowOptionsHtml;
       document.getElementById('calendarBungalowSelect').innerHTML = bungalowOptionsHtml;
+      syncScheduleYearOptions();
       window.handleCalendarBungalowChange('ALL');
 
       checkUrlAdminParam();
