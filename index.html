@@ -138,7 +138,10 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span>4. Personnel</span>
-            <span id="personnelCountBadge" class="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-white/15 text-white">14</span>
+            <svg id="personnelTabLockIcon" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span id="personnelCountBadge" class="hidden px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-white/15 text-white">14</span>
           </button>
 
           <button id="mainTabBtn_tariffs" onclick="switchMainTab('tariffs')" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white hover:bg-white/10">
@@ -305,7 +308,7 @@
 
             <input type="month" id="scheduleMonthFilter" onchange="renderBookingsList()" title="Filter by Month" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue" />
 
-            <select id="scheduleTimeFilter" onchange="renderBookingsList()" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue">
+            <select id="scheduleTimeFilter" onchange="handleScheduleTimeFilterChange()" class="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 sm:py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-slsc-blue">
               <option value="UPCOMING">Active & Upcoming</option>
               <option value="ALL">All Records</option>
               <option value="PAST">Completed / Past</option>
@@ -313,6 +316,11 @@
 
             <button onclick="resetScheduleFilters()" class="col-span-2 sm:col-span-1 text-xs font-semibold text-slate-500 hover:text-slsc-navy px-3 py-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer text-center">
               Reset Filters
+            </button>
+
+            <!-- On-demand older bookings loader (avoids reading full history beyond 30-day cutoff) -->
+            <button id="loadOlderBookingsBtn" type="button" onclick="loadOlderBookingsHistory()" class="col-span-2 sm:col-span-auto px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-slsc-blue text-xs font-bold border border-blue-200 transition flex items-center justify-center gap-1 cursor-pointer" title="Load booking records older than 30 days">
+              <span id="loadOlderBookingsText">🕒 Load Older History</span>
             </button>
 
             <!-- Admin Bulk Cleanup Action Button -->
@@ -470,7 +478,7 @@
           </div>
 
           <!-- Sub-tabs inside Personnel Directory -->
-          <div class="flex flex-wrap items-center gap-1">
+          <div id="personnelSubTabsWrap" class="hidden flex-wrap items-center gap-1">
             <button id="dirSubBtn_list" onclick="switchPersonnelTab('list')" class="px-3 py-1 rounded-xl text-xs font-bold bg-slsc-gold text-slsc-navy cursor-pointer">
               Roster
             </button>
@@ -483,7 +491,33 @@
           </div>
         </div>
 
-        <div class="p-3.5 sm:p-5">
+        <!-- Locked Card Shown in Viewer Mode -->
+        <div id="personnelLockedView" class="p-6 sm:p-10 text-center space-y-4">
+          <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 border border-amber-300 flex items-center justify-center mx-auto shadow-xs">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div class="max-w-md mx-auto space-y-1.5">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+              Restricted Directory
+            </span>
+            <h3 class="text-base sm:text-lg font-extrabold text-slsc-navy">Personnel Directory is Locked in Viewer Mode</h3>
+            <p class="text-xs sm:text-sm text-slate-500">
+              Officer & personnel roll records are protected in read-only viewer mode. Unlock Admin Mode to view or manage the directory.
+            </p>
+          </div>
+          <div class="pt-1">
+            <button type="button" onclick="handleAdminToggle()" class="px-4 py-2.5 rounded-xl bg-slsc-gold hover:bg-yellow-400 text-slsc-navy text-xs sm:text-sm font-extrabold shadow-md transition inline-flex items-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+              </svg>
+              <span>Unlock Admin Mode</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="personnelUnlockedContent" class="hidden p-3.5 sm:p-5">
           <!-- SUB-VIEW 1: ROSTER LIST -->
           <div id="personnelTabList" class="space-y-3.5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -605,9 +639,14 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
             <span class="text-[10px] font-bold uppercase tracking-widest text-slsc-gold">Official Regimental Tariff Guide</span>
             <h2 class="text-sm sm:text-lg font-bold">Holiday Bungalow Rates & Facilities</h2>
           </div>
-          <div id="tariffAdminActionWrap" class="hidden">
-            <button onclick="openTariffEditModal()" class="px-3 py-1.5 rounded-xl bg-slsc-gold text-slsc-navy text-xs font-bold hover:bg-yellow-400 transition cursor-pointer">
-              ✏️ Edit Rates
+          <div class="flex items-center gap-2">
+            <div id="tariffAdminActionWrap" class="hidden">
+              <button onclick="openTariffEditModal()" class="px-3 py-1.5 rounded-xl bg-slsc-gold text-slsc-navy text-xs font-bold hover:bg-yellow-400 transition cursor-pointer">
+                ✏️ Edit Rates
+              </button>
+            </div>
+            <button type="button" onclick="refreshCachedConfigFromCloud(true)" class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition cursor-pointer" title="Check Firestore for updated tariff rates">
+              ↻ Sync Rates
             </button>
           </div>
         </div>
@@ -868,7 +907,12 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
         </div>
 
         <form onsubmit="updateAdminPasscodeSetting(event)" class="pt-3 border-t border-slate-200 space-y-2.5">
-          <label class="block text-xs font-bold text-slate-700 uppercase">3. Change Admin Passcode</label>
+          <div class="flex items-center justify-between gap-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase">3. Change Admin Passcode</label>
+            <button type="button" onclick="refreshCachedConfigFromCloud(true)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer" title="Refresh cached Admin Passcode & Tariff Rates from Firestore">
+              ↻ Refresh Cloud Config
+            </button>
+          </div>
           <div class="flex gap-2">
             <input type="text" id="newPasscodeInput" placeholder="New passcode (min 4 chars)" required minlength="4" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs" />
             <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 cursor-pointer">Update</button>
@@ -1033,13 +1077,19 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import {
       getFirestore,
+      initializeFirestore,
+      persistentLocalCache,
+      persistentMultipleTabManager,
       collection,
       doc,
       addDoc,
       setDoc,
       updateDoc,
       deleteDoc,
+      getDoc,
       getDocs,
+      query,
+      where,
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -1169,7 +1219,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     ];
 
     // -----------------------------------------------------------------------
-    // 3. APPLICATION STATE
+    // 3. APPLICATION STATE & CACHE HELPERS
     // -----------------------------------------------------------------------
     function getTodayISO() {
       const now = new Date();
@@ -1180,6 +1230,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     }
 
     const todayStr = getTodayISO();
+    const BOOKINGS_HISTORY_CUTOFF_DAYS = 30;
     const state = {
       activeMainTab: 'availability',
       isAdmin: false,
@@ -1190,7 +1241,9 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       calendarYear: new Date().getFullYear(),
       calendarMonth: new Date().getMonth(),
       bookings: [],
+      olderBookingsLoaded: false,
       personnel: [...INITIAL_PERSONNEL],
+      personnelListenerUnsub: null,
       tariffs: [...INITIAL_TARIFFS],
       db: null,
       auth: null,
@@ -1199,6 +1252,29 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     };
 
     window.state = state;
+
+    const CACHE_KEYS = {
+      settings: () => `slsc_cache_settings_${state.appId}`,
+      tariffs: () => `slsc_cache_tariffs_${state.appId}`,
+      personnel: () => `slsc_cache_personnel_${state.appId}`
+    };
+
+    function readJsonCache(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function writeJsonCache(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (_) {
+        // Ignore storage quota or private mode errors
+      }
+    }
 
     // -----------------------------------------------------------------------
     // 4. HELPER UTILITIES
@@ -1293,9 +1369,6 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       }, 3200);
     }
 
-    // -----------------------------------------------------------------------
-    // 5. GLOBAL ATTACHMENTS
-    // -----------------------------------------------------------------------
     function formatPersonFullDisplay(rank, name) {
       return [rank, name].map(s => (s || '').trim()).filter(Boolean).join(' ');
     }
@@ -1305,6 +1378,9 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       return val !== '' && val !== '-' && val.toUpperCase() !== 'N/A';
     }
 
+    // -----------------------------------------------------------------------
+    // 5. GLOBAL ATTACHMENTS & LAZY / CACHED CLOUD LOADERS
+    // -----------------------------------------------------------------------
     window.selectPersonnelItem = function (person) {
       const fullName = formatPersonFullDisplay(person.rank, person.name);
       const validOffr = hasValidOffrNo(person.offrNo);
@@ -1388,11 +1464,11 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
           if (state.db && state.user) {
             const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
             await deleteDoc(doc(personnelCol, docId));
-          } else {
-            state.personnel = state.personnel.filter(item => (item.docId !== docId && item.id !== docId));
-            document.getElementById('personnelCountBadge').textContent = state.personnel.length;
-            renderPersonnelDirectoryTable();
           }
+          state.personnel = state.personnel.filter(item => (item.docId !== docId && item.id !== docId));
+          writeJsonCache(CACHE_KEYS.personnel(), state.personnel);
+          document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+          renderPersonnelDirectoryTable();
           showToast('Personnel record deleted.');
         } catch (err) {
           console.error('Delete personnel error:', err);
@@ -1402,6 +1478,102 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
 
       window.openModal('confirmDialogModal');
     };
+
+    // Lazily subscribe to personnel once when Personnel tab or Admin Mode is opened
+    window.ensurePersonnelLoaded = function () {
+      if (!state.db || !state.user || state.personnelListenerUnsub) {
+        return state.personnel;
+      }
+      const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
+      state.personnelListenerUnsub = onSnapshot(personnelCol, (snapshot) => {
+        if (!snapshot.empty) {
+          const list = [];
+          snapshot.forEach(docSnap => {
+            list.push({ docId: docSnap.id, id: docSnap.id, ...docSnap.data() });
+          });
+          list.sort((a, b) => (a.offrNo || '').localeCompare(b.offrNo || ''));
+          state.personnel = list;
+          writeJsonCache(CACHE_KEYS.personnel(), state.personnel);
+          const badge = document.getElementById('personnelCountBadge');
+          if (badge) badge.textContent = state.personnel.length;
+          renderPersonnelDirectoryTable();
+        }
+      }, (err) => {
+        console.error('Personnel snapshot error:', err);
+      });
+      return state.personnel;
+    };
+
+    // One-time getDoc() loader with localStorage cache for settings & tariffs
+    window.refreshCachedConfigFromCloud = async function (notify = false) {
+      if (!state.db || !state.user) {
+        if (notify) renderTariffTable();
+        return;
+      }
+      let updatedAny = false;
+      try {
+        const settingsDocRef = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'settings', 'adminConfig');
+        const settingsSnap = await getDoc(settingsDocRef);
+        if (settingsSnap.exists() && settingsSnap.data().passcode) {
+          state.adminPasscode = settingsSnap.data().passcode;
+          writeJsonCache(CACHE_KEYS.settings(), { passcode: state.adminPasscode });
+          checkUrlAdminParam();
+          updateSettingsModalLinks();
+          updatedAny = true;
+        }
+      } catch (sErr) {
+        console.error('Settings getDoc error:', sErr);
+      }
+
+      try {
+        const tariffDocRef = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'tariffs', 'officialTariffs');
+        const tariffSnap = await getDoc(tariffDocRef);
+        if (tariffSnap.exists() && Array.isArray(tariffSnap.data().items)) {
+          const savedItems = tariffSnap.data().items;
+          const existingIds = new Set(savedItems.map(i => i.id));
+          const missingDefaults = INITIAL_TARIFFS.filter(def => !existingIds.has(def.id));
+          state.tariffs = missingDefaults.length > 0 ? [...savedItems, ...missingDefaults] : savedItems;
+          writeJsonCache(CACHE_KEYS.tariffs(), state.tariffs);
+          renderTariffTable();
+          updatedAny = true;
+        }
+      } catch (tErr) {
+        console.error('Tariffs getDoc error:', tErr);
+      }
+
+      if (notify) {
+        showToast(updatedAny ? 'Passcode & tariff rates refreshed from cloud.' : 'Using latest cached settings & rates.');
+      }
+    };
+
+    window.handleScheduleTimeFilterChange = function () {
+      const timeFilter = document.getElementById('scheduleTimeFilter')?.value;
+      if ((timeFilter === 'PAST' || timeFilter === 'ALL') && !state.olderBookingsLoaded) {
+        window.loadOlderBookingsHistory(true);
+      }
+      renderBookingsList();
+    };
+
+    function updatePersonnelTabVisibility() {
+      const lockedView = document.getElementById('personnelLockedView');
+      const unlockedContent = document.getElementById('personnelUnlockedContent');
+      const subTabsWrap = document.getElementById('personnelSubTabsWrap');
+      const countBadge = document.getElementById('personnelCountBadge');
+
+      if (state.isAdmin) {
+        lockedView?.classList.add('hidden');
+        unlockedContent?.classList.remove('hidden');
+        subTabsWrap?.classList.remove('hidden');
+        subTabsWrap?.classList.add('flex');
+        countBadge?.classList.remove('hidden');
+      } else {
+        lockedView?.classList.remove('hidden');
+        unlockedContent?.classList.add('hidden');
+        subTabsWrap?.classList.add('hidden');
+        subTabsWrap?.classList.remove('flex');
+        countBadge?.classList.add('hidden');
+      }
+    }
 
     window.switchMainTab = function (tabName) {
       state.activeMainTab = tabName;
@@ -1425,11 +1597,19 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
         renderBungalowPillTabs();
         renderSelectedBungalowDetails();
       } else if (tabName === 'schedule') {
+        const timeFilter = document.getElementById('scheduleTimeFilter')?.value;
+        if ((timeFilter === 'PAST' || timeFilter === 'ALL') && !state.olderBookingsLoaded) {
+          window.loadOlderBookingsHistory(true);
+        }
         renderBookingsList();
       } else if (tabName === 'calendar') {
         renderCalendar();
       } else if (tabName === 'personnel') {
-        renderPersonnelDirectoryTable();
+        updatePersonnelTabVisibility();
+        if (state.isAdmin) {
+          window.ensurePersonnelLoaded();
+          renderPersonnelDirectoryTable();
+        }
       } else if (tabName === 'tariffs') {
         renderTariffTable();
       }
@@ -1488,6 +1668,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
         t.other = document.getElementById(`t_other_${idx}`).value.trim();
         t.civil = document.getElementById(`t_civil_${idx}`).value.trim();
       });
+      writeJsonCache(CACHE_KEYS.tariffs(), state.tariffs);
 
       try {
         if (state.db && state.user) {
@@ -1508,6 +1689,9 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     window.viewAllScheduleForCurrentBungalow = function () {
       document.getElementById('scheduleBungalowFilter').value = state.selectedBungalowId;
       document.getElementById('scheduleTimeFilter').value = 'ALL';
+      if (!state.olderBookingsLoaded) {
+        window.loadOlderBookingsHistory(true);
+      }
       window.switchMainTab('schedule');
     };
 
@@ -1907,6 +2091,56 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       }
     };
 
+    window.loadOlderBookingsHistory = async function (silent = false) {
+      const btn = document.getElementById('loadOlderBookingsBtn');
+      const labelEl = document.getElementById('loadOlderBookingsText');
+
+      if (state.olderBookingsLoaded) {
+        if (!silent) showToast('Older booking history is already loaded.');
+        return;
+      }
+      if (!state.db || !state.user) {
+        if (!silent) showToast('Older history unavailable in local mode.', 'warning');
+        return;
+      }
+
+      try {
+        if (btn) btn.disabled = true;
+        if (labelEl) labelEl.textContent = '⏳ Loading...';
+
+        const cutoffDate = addDaysISO(todayStr, -BOOKINGS_HISTORY_CUTOFF_DAYS);
+        const bookingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'bookings');
+        const olderQuery = query(bookingsCol, where('checkOut', '<', cutoffDate));
+        const snap = await getDocs(olderQuery);
+
+        const existingIds = new Set(state.bookings.map(b => b.id));
+        let addedCount = 0;
+        snap.forEach(docSnap => {
+          if (!existingIds.has(docSnap.id)) {
+            state.bookings.push({ id: docSnap.id, ...docSnap.data() });
+            existingIds.add(docSnap.id);
+            addedCount++;
+          }
+        });
+
+        state.bookings.sort((a, b) => (a.checkIn || '').localeCompare(b.checkIn || ''));
+        state.olderBookingsLoaded = true;
+        if (labelEl) labelEl.textContent = '✓ History Loaded';
+        if (btn) btn.classList.add('opacity-75');
+
+        renderAllViews();
+        if (!silent) {
+          showToast(addedCount > 0 ? `Loaded ${addedCount} older booking record(s).` : `No bookings found prior to ${BOOKINGS_HISTORY_CUTOFF_DAYS}-day cutoff.`);
+        }
+      } catch (err) {
+        console.error('Load older bookings error:', err);
+        if (labelEl) labelEl.textContent = '🕒 Load Older History';
+        if (!silent) showToast('Could not load older bookings.', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    };
+
     window.handlePersonnelAutocomplete = function (queryText) {
       const dropdown = document.getElementById('personnelDropdownList');
       const clearBtn = document.getElementById('clearSelectedPersonBtn');
@@ -1997,6 +2231,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
 
     window.openBookingModal = function (preselectBungalowId = null, preselectUnitId = null, preselectDate = null) {
       if (!state.isAdmin) return;
+      window.ensurePersonnelLoaded();
 
       document.getElementById('bookingModalTitle').textContent = 'New Bungalow Booking';
       document.getElementById('saveBookingSubmitBtn').textContent = 'Confirm Booking';
@@ -2105,11 +2340,11 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
           if (state.db && state.user) {
             const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
             await setDoc(doc(personnelCol, newPersonId), newPersonRecord, { merge: true });
-          } else {
-            state.personnel.push(newPersonRecord);
-            document.getElementById('personnelCountBadge').textContent = state.personnel.length;
-            renderPersonnelDirectoryTable();
           }
+          state.personnel.push(newPersonRecord);
+          writeJsonCache(CACHE_KEYS.personnel(), state.personnel);
+          document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+          renderPersonnelDirectoryTable();
           personnelId = newPersonId;
           autoCreatedPerson = true;
         } catch (pErr) {
@@ -2140,7 +2375,10 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
             await updateDoc(doc(bookingsCol, editId), bookingPayload);
             showToast('Booking updated successfully!');
           } else {
-            await addDoc(bookingsCol, bookingPayload);
+            const createdRef = await addDoc(bookingsCol, bookingPayload);
+            state.bookings.push({ id: createdRef.id, ...bookingPayload });
+            state.bookings.sort((a, b) => (a.checkIn || '').localeCompare(b.checkIn || ''));
+            renderAllViews();
             showToast(autoCreatedPerson
               ? `Saved "${resolvedName}" to Personnel & confirmed booking!`
               : 'New bungalow booking confirmed!');
@@ -2323,6 +2561,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
           document.getElementById('personnelCountBadge').textContent = state.personnel.length;
           renderPersonnelDirectoryTable();
         }
+        writeJsonCache(CACHE_KEYS.personnel(), state.personnel);
         showToast(`Saved ${formatPersonFullDisplay(rank, name)} to directory!`);
         window.switchPersonnelTab('list');
       } catch (err) {
@@ -2390,6 +2629,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
           document.getElementById('personnelCountBadge').textContent = state.personnel.length;
           renderPersonnelDirectoryTable();
         }
+        writeJsonCache(CACHE_KEYS.personnel(), state.personnel);
         document.getElementById('bulkPasteTextarea').value = '';
         showToast(`Successfully imported ${parsedRecords.length} personnel records!`);
         window.switchPersonnelTab('list');
@@ -2422,17 +2662,14 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       return state.bookings.filter(bk => {
         if (bFilter !== 'ALL' && bk.bungalowId !== bFilter) return false;
 
-        // Match Check-In Year
         if (yFilter !== 'ALL') {
           if (!bk.checkIn || !bk.checkIn.startsWith(`${yFilter}-`)) return false;
         }
 
-        // Match Check-In Month
         if (mFilter) {
           if (!bk.checkIn || !bk.checkIn.startsWith(mFilter)) return false;
         }
 
-        // Match Exact Check-In Date
         if (exactDate) {
           if (bk.checkIn !== exactDate) return false;
         }
@@ -2476,12 +2713,10 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     window.openExportBookingsModal = function () {
       if (!state.isAdmin) return;
 
-      // Sync bungalow options
       const expBungalow = document.getElementById('exportBungalowFilter');
       expBungalow.innerHTML = `<option value="ALL">All 6 Bungalows</option>` +
         BUNGALOWS.map(b => `<option value="${b.id}">${b.number}. ${b.name}</option>`).join('');
 
-      // Sync year options
       const yearsSet = new Set([String(new Date().getFullYear())]);
       state.bookings.forEach(bk => {
         if (bk.checkIn && bk.checkIn.length >= 4) yearsSet.add(bk.checkIn.slice(0, 4));
@@ -2492,7 +2727,6 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       expYear.innerHTML = `<option value="ALL">All Years</option>` +
         sortedYears.map(yr => `<option value="${yr}">${yr}</option>`).join('');
 
-      // Pre-fill from current Schedule tab filters if active
       expBungalow.value = document.getElementById('scheduleBungalowFilter')?.value || 'ALL';
       expYear.value = document.getElementById('scheduleYearFilter')?.value || 'ALL';
       document.getElementById('exportMonthFilter').value = document.getElementById('scheduleMonthFilter')?.value || '';
@@ -2595,6 +2829,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       state.adminPasscode = newCode;
       updateSettingsModalLinks();
       document.getElementById('newPasscodeInput').value = '';
+      writeJsonCache(CACHE_KEYS.settings(), { passcode: newCode });
 
       try {
         if (state.db && state.user) {
@@ -2617,7 +2852,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     };
 
     // -----------------------------------------------------------------------
-    // 6. INTERNAL FUNCTIONS
+    // 6. INTERNAL UI RENDERERS & FIREBASE INITIALIZATION
     // -----------------------------------------------------------------------
     function updateUnitSpecBanner() {
       const bId = document.getElementById('bookingBungalowSelect').value;
@@ -2942,6 +3177,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     }
 
     window.renderPersonnelDirectoryTable = function () {
+      if (!state.isAdmin) return;
       const q = (document.getElementById('directorySearchInput')?.value || '').toLowerCase().trim();
       const tbody = document.getElementById('personnelDirectoryTableBody');
       if (!tbody) return;
@@ -2958,18 +3194,16 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
           <td class="py-3 px-4 font-medium text-slate-900">${p.name}</td>
           <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${p.unit || '-'}</td>
           <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${p.phone || '-'}</td>
-          ${state.isAdmin ? `
-            <td class="py-3 px-4 text-right whitespace-nowrap">
-              <div class="inline-flex items-center gap-1.5">
-                <button onclick="editPersonnelRecord('${p.docId || p.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slsc-blue hover:text-white text-slate-700 text-xs font-semibold transition cursor-pointer">
-                  Edit
-                </button>
-                <button onclick="confirmDeletePersonnel('${p.docId || p.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-semibold transition cursor-pointer">
-                  Delete
-                </button>
-              </div>
-            </td>
-          ` : ''}
+          <td class="py-3 px-4 text-right whitespace-nowrap">
+            <div class="inline-flex items-center gap-1.5">
+              <button onclick="editPersonnelRecord('${p.docId || p.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slsc-blue hover:text-white text-slate-700 text-xs font-semibold transition cursor-pointer">
+                Edit
+              </button>
+              <button onclick="confirmDeletePersonnel('${p.docId || p.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-semibold transition cursor-pointer">
+                Delete
+              </button>
+            </div>
+          </td>
         </tr>
       `).join('');
     };
@@ -2979,7 +3213,9 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       renderSelectedBungalowDetails();
       renderCalendar();
       renderBookingsList();
-      renderPersonnelDirectoryTable();
+      if (state.isAdmin) {
+        renderPersonnelDirectoryTable();
+      }
       renderTariffTable();
     }
 
@@ -3006,8 +3242,13 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
       const dirSubBulk = document.getElementById('dirSubBtn_bulk');
       const tariffActionWrap = document.getElementById('tariffAdminActionWrap');
       const scheduleBulkWrap = document.getElementById('scheduleAdminBulkActionWrap');
+      const personnelLockIcon = document.getElementById('personnelTabLockIcon');
+
+      updatePersonnelTabVisibility();
 
       if (enable) {
+        window.ensurePersonnelLoaded();
+        personnelLockIcon?.classList.add('hidden');
         modeBadge.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40 flex items-center gap-1.5';
         modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Admin Mode (Edit Enabled)</span>`;
         toggleBtn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white/15 text-white hover:bg-white/25 transition border border-white/20 flex items-center gap-1.5 cursor-pointer';
@@ -3025,6 +3266,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
         updateSettingsModalLinks();
         if (notify) showToast('Admin Mode unlocked. You can now add and edit bookings & tariffs.');
       } else {
+        personnelLockIcon?.classList.remove('hidden');
         modeBadge.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-slate-200 border border-white/15 flex items-center gap-1.5';
         modeBadge.innerHTML = `<svg class="w-3.5 h-3.5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg><span>Viewer Mode (Read-Only)</span>`;
         toggleBtn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slsc-gold text-slsc-navy hover:bg-yellow-400 transition shadow-md flex items-center gap-1.5 cursor-pointer';
@@ -3072,7 +3314,14 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
 
         const app = initializeApp(firebaseConfig);
         state.auth = getAuth(app);
-        state.db = getFirestore(app);
+
+        try {
+          state.db = initializeFirestore(app, {
+            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+          });
+        } catch (_) {
+          state.db = getFirestore(app);
+        }
 
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           const cred = await signInWithCustomToken(state.auth, __initial_auth_token);
@@ -3084,66 +3333,32 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
 
         if (!state.user) return;
 
-        const settingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'settings');
-        onSnapshot(settingsCol, (snapshot) => {
-          snapshot.forEach(docSnap => {
-            if (docSnap.id === 'adminConfig' && docSnap.data().passcode) {
-              state.adminPasscode = docSnap.data().passcode;
-              checkUrlAdminParam();
-              updateSettingsModalLinks();
-            }
-          });
-        }, (err) => console.error('Settings sync error:', err));
+        // One-time getDoc() with localStorage cache for settings & tariffs
+        await window.refreshCachedConfigFromCloud(false);
 
-        const tariffCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'tariffs');
-        onSnapshot(tariffCol, (snapshot) => {
-          snapshot.forEach(docSnap => {
-            if (docSnap.id === 'officialTariffs' && docSnap.data().items) {
-              const savedItems = docSnap.data().items;
-              const existingIds = new Set(savedItems.map(i => i.id));
-              const missingDefaults = INITIAL_TARIFFS.filter(def => !existingIds.has(def.id));
-              state.tariffs = missingDefaults.length > 0 ? [...savedItems, ...missingDefaults] : savedItems;
-              renderTariffTable();
-            }
-          });
-        }, (err) => console.error('Tariffs sync error:', err));
-
-        const personnelCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'personnel');
-        const existingSnap = await getDocs(personnelCol);
-        if (existingSnap.empty) {
-          for (const person of INITIAL_PERSONNEL) {
-            await setDoc(doc(personnelCol, person.id), person);
-          }
+        // If user is already in Admin Mode or on Personnel tab, start personnel listener
+        if (state.isAdmin || state.activeMainTab === 'personnel') {
+          window.ensurePersonnelLoaded();
         }
 
-        const appSettingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'settings');
-        const settingsSnap = await getDocs(appSettingsCol);
-        if (settingsSnap.empty) {
-          await setDoc(doc(appSettingsCol, 'adminConfig'), { passcode: 'slsc2027' });
-        }
-
-        onSnapshot(personnelCol, (snapshot) => {
-          const list = [];
-          snapshot.forEach(docSnap => {
-            list.push({ docId: docSnap.id, ...docSnap.data() });
-          });
-          list.sort((a, b) => (a.offrNo || '').localeCompare(b.offrNo || ''));
-          state.personnel = list.length > 0 ? list : [...INITIAL_PERSONNEL];
-          document.getElementById('personnelCountBadge').textContent = state.personnel.length;
-          renderPersonnelDirectoryTable();
-        }, (err) => {
-          console.error('Personnel snapshot error:', err);
-        });
-
+        // Single date-filtered onSnapshot listener for recent & upcoming bookings (30-day lookback cutoff)
+        const cutoffDate = addDaysISO(todayStr, -BOOKINGS_HISTORY_CUTOFF_DAYS);
         const bookingsCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'bookings');
-        onSnapshot(bookingsCol, (snapshot) => {
-          const list = [];
+        const recentBookingsQuery = query(bookingsCol, where('checkOut', '>=', cutoffDate));
+
+        onSnapshot(recentBookingsQuery, (snapshot) => {
+          const recentList = [];
           snapshot.forEach(docSnap => {
-            list.push({ id: docSnap.id, ...docSnap.data() });
+            recentList.push({ id: docSnap.id, ...docSnap.data() });
           });
-          list.sort((a, b) => (a.checkIn || '').localeCompare(b.checkIn || ''));
-          state.bookings = list;
-          updateSyncBadge('Live Cloud Sync', true);
+
+          const olderRecords = state.bookings.filter(b => b.checkOut && b.checkOut < cutoffDate);
+          const mergedMap = new Map();
+          olderRecords.forEach(b => mergedMap.set(b.id, b));
+          recentList.forEach(b => mergedMap.set(b.id, b));
+
+          state.bookings = Array.from(mergedMap.values()).sort((a, b) => (a.checkIn || '').localeCompare(b.checkIn || ''));
+          updateSyncBadge('Live • Eco Reads', true);
           renderAllViews();
         }, (err) => {
           console.error('Bookings snapshot error:', err);
@@ -3152,7 +3367,7 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
 
       } catch (err) {
         console.error('Firebase init failed:', err);
-        updateSyncBadge('Local Mode', false);
+        updateSyncBadge('Local Mode • Cached', false);
       }
     }
 
@@ -3163,8 +3378,24 @@ O/65002	Maj	CD Fernando	3 SLSC" class="w-full p-3 rounded-xl border border-slate
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      const cachedSettings = readJsonCache(CACHE_KEYS.settings());
+      if (cachedSettings?.passcode) {
+        state.adminPasscode = cachedSettings.passcode;
+      }
+
+      const cachedTariffs = readJsonCache(CACHE_KEYS.tariffs());
+      if (Array.isArray(cachedTariffs) && cachedTariffs.length > 0) {
+        state.tariffs = cachedTariffs;
+      }
+
+      const cachedPersonnel = readJsonCache(CACHE_KEYS.personnel());
+      if (Array.isArray(cachedPersonnel) && cachedPersonnel.length > 0) {
+        state.personnel = cachedPersonnel;
+      }
+
       document.getElementById('overviewDatePicker').value = todayStr;
       document.getElementById('personnelCountBadge').textContent = state.personnel.length;
+      updatePersonnelTabVisibility();
 
       const bungalowOptionsHtml = `<option value="ALL">All 6 Bungalows</option>` +
         BUNGALOWS.map(b => `<option value="${b.id}">${b.number}. ${b.name}</option>`).join('');
